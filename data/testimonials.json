@@ -1,0 +1,32 @@
+[
+  {
+    "id": "t1",
+    "name": "Priya Nair",
+    "review": "As a solo female traveler, safety was my top concern. Kishori Travel exceeded all expectations. The guides were professional and the hotels were excellent.",
+    "rating": 5,
+    "location": "Chennai",
+    "date": "March 2024"
+  },
+  {
+    "id": "t2",
+    "name": "Rahul Sharma",
+    "review": "The luxury Rajasthan tour was worth every penny. The attention to detail in planning was remarkable.",
+    "rating": 5,
+    "location": "Delhi",
+    "date": "Jan 2024"
+  },
+  {
+    "id": "1777712743402",
+    "name": "Corrupti molestias ",
+    "location": "Possimus odio asper",
+    "rating": 5,
+    "review": "Esse dolorem omnis a Esse dolorem omnis a Esse dolorem omnis aEsse dolorem omnis a Esse dolorem omnis a Esse dolorem omnis a Esse dolorem omnis a"
+  },
+  {
+    "id": "1777729700968",
+    "name": "Sunt officiis itaque",
+    "location": "Perferendis ipsam be",
+    "rating": 4,
+    "review": "Numquam do dolorem c"
+  }
+]

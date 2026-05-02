@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "TourPackage": {
+      "title": "Tour Package",
+      "description": "Details of a tour package",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Package name" },
+        "description": { "type": "string", "description": "Short summary" },
+        "price": { "type": "number", "description": "Starting price" },
+        "duration": { "type": "string", "description": "e.g., 5N/6D" },
+        "location": { "type": "string", "description": "Primary destination" },
+        "imageURL": { "type": "string", "description": "Cover image" },
+        "itinerary": { "type": "array", "description": "Day-by-day plan" },
+        "isBestSeller": { "type": "boolean" },
+        "category": { "type": "string", "description": "Adventure, Spiritual, Weekend, etc." }
+      },
+      "required": ["title", "price", "location", "imageURL"]
+    },
+    "GalleryItem": {
+      "title": "Gallery Item",
+      "description": "Photo or Video for the gallery",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "url": { "type": "string" },
+        "type": { "type": "string", "enum": ["photo", "video"] },
+        "thumbnail": { "type": "string" }
+      },
+      "required": ["url", "type"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "User review",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "review": { "type": "string" },
+        "rating": { "type": "number" },
+        "location": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["name", "review"]
+    }
+  },
+  "firestore": {
+    "packages": {
+      "schema": "TourPackage",
+      "description": "Collection of tour packages"
+    },
+    "gallery": {
+      "schema": "GalleryItem",
+      "description": "Photo and video gallery"
+    },
+    "testimonials": {
+      "schema": "Testimonial",
+      "description": "Guest stories and reviews"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    // For this demo app, we'll allow the bootstrapped user email if provided, 
+    // or rely on a simple 'admin' flag if we had one. 
+    // Since we are asked for "dummy credentials", we'll allow writes if auth is not null for now, 
+    // but in a real app we'd check for a specific UID or role.
+    function isAdmin() { return isSignedIn(); } 
+
+    // Packages
+    match /packages/{packageId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidTourPackage(incoming());
+      allow update: if isAdmin() && isValidTourPackage(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'price', 'duration', 'location', 'imageURL', 'itinerary', 'isBestSeller', 'category', 'tag']);
+      allow delete: if isAdmin();
+
+      function isValidTourPackage(data) {
+        return data.keys().hasAll(['title', 'price', 'location', 'imageURL']) &&
+               data.title is string && data.title.size() <= 100 &&
+               data.price is number && data.price > 0 &&
+               data.location is string && data.location.size() <= 100 &&
+               data.imageURL is string && data.imageURL.size() <= 1000;
+      }
+    }
+
+    // Gallery
+    match /gallery/{itemId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidGalleryItem(incoming());
+      allow update: if isAdmin() && isValidGalleryItem(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['title', 'url', 'type', 'thumbnail']);
+      allow delete: if isAdmin();
+
+      function isValidGalleryItem(data) {
+        return data.keys().hasAll(['url', 'type']) &&
+               data.url is string && data.url.size() <= 1000 &&
+               data.type in ['photo', 'video'];
+      }
+    }
+
+    // Testimonials
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow create: if true; // Public can submit testimonials for this demo
+      allow update: if isAdmin() && isValidTestimonial(incoming());
+      allow delete: if isAdmin();
+
+      function isValidTestimonial(data) {
+        return data.keys().hasAll(['name', 'review']) &&
+               data.name is string && data.name.size() <= 100 &&
+               data.review is string && data.review.size() <= 1000;
+      }
+    }
+  }
+}
