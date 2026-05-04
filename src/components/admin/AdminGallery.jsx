@@ -8,6 +8,7 @@ export default function AdminGallery() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [mediaFilter, setMediaFilter] = useState("all"); // "all" | "photo" | "video"
 
   const [formData, setFormData] = useState({
     title: "",
@@ -113,8 +114,15 @@ export default function AdminGallery() {
     return <div className="text-center py-12 text-slate-500">Loading gallery...</div>;
   }
 
+  const photoCount = items.filter(i => i.type !== "video").length;
+  const videoCount = items.filter(i => i.type === "video").length;
+  const filteredItems = mediaFilter === "all" ? items
+    : mediaFilter === "video" ? items.filter(i => i.type === "video")
+    : items.filter(i => i.type !== "video");
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Gallery Management</h1>
@@ -128,8 +136,42 @@ export default function AdminGallery() {
         </button>
       </div>
 
+      {/* Media Type Toggle */}
+      <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl w-fit">
+        {[
+          { key: "all",   label: "All Media",  count: items.length },
+          { key: "photo", label: "Photos",     count: photoCount },
+          { key: "video", label: "Videos",     count: videoCount },
+        ].map(({ key, label, count }) => (
+          <button
+            key={key}
+            onClick={() => setMediaFilter(key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+              mediaFilter === key
+                ? "bg-white text-orange-600 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {key === "photo" ? <ImageIcon className="h-4 w-4" /> : key === "video" ? <Film className="h-4 w-4" /> : null}
+            {label}
+            <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+              mediaFilter === key ? "bg-orange-100 text-orange-600" : "bg-slate-200 text-slate-500"
+            }`}>{count}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Empty state */}
+      {filteredItems.length === 0 && (
+        <div className="text-center py-16 text-slate-400">
+          {mediaFilter === "photo" ? <ImageIcon className="h-10 w-10 mx-auto mb-3 opacity-30" /> : <Film className="h-10 w-10 mx-auto mb-3 opacity-30" />}
+          <p className="font-medium">No {mediaFilter === "all" ? "media" : mediaFilter + "s"} found</p>
+          <p className="text-sm mt-1">Add some using the button above</p>
+        </div>
+      )}
+
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {items.map((item) => (
+        {filteredItems.map((item) => (
           <div
             key={item.id}
             className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200"
@@ -189,6 +231,7 @@ export default function AdminGallery() {
           </div>
         ))}
       </div>
+      {/* End media grid */}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

@@ -154,13 +154,13 @@ export default function AdminTestimonials() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleOpenModal(t)}
-                      className="p-2.5 rounded-xl bg-slate-100 text-slate-400 opacity-0 group-hover:opacity-100 group-hover:bg-blue-50 group-hover:text-blue-500 transition-all"
+                      className="p-2.5 rounded-xl bg-blue-50 text-blue-500 sm:bg-slate-100 sm:text-slate-400 sm:opacity-0 sm:group-hover:opacity-100 sm:group-hover:bg-blue-50 sm:group-hover:text-blue-500 transition-all"
                     >
                       <Edit3 className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(t.id)}
-                      className="p-2.5 rounded-xl bg-slate-100 text-slate-400 opacity-0 group-hover:opacity-100 group-hover:bg-red-50 group-hover:text-red-500 transition-all"
+                      className="p-2.5 rounded-xl bg-red-50 text-red-500 sm:bg-slate-100 sm:text-slate-400 sm:opacity-0 sm:group-hover:opacity-100 sm:group-hover:bg-red-50 sm:group-hover:text-red-500 transition-all"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

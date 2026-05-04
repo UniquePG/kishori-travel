@@ -153,80 +153,97 @@ export default function AdminPackages() {
         <h3 className="text-lg font-bold text-slate-900">Manage Tour Packages</h3>
         <button 
           onClick={() => handleOpenModal()}
-          className="inline-flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all select-none active:scale-95"
+          className="inline-flex items-center gap-2 bg-orange-500 text-white px-3 sm:px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all select-none active:scale-95"
         >
           <Plus className="h-4 w-4" />
-          Add Package
+          <span className="hidden sm:inline">Add Package</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              <th className="pb-4 pt-2 first:pl-2">Package</th>
-              <th className="pb-4 pt-2">Location</th>
-              <th className="pb-4 pt-2">Price</th>
-              <th className="pb-4 pt-2">Duration</th>
-              <th className="pb-4 pt-2 text-right last:pr-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {packages.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="text-center py-8 text-slate-500">No packages found. Add one to get started.</td>
-              </tr>
-            ) : (
-              packages.map((pkg) => (
-                <tr key={pkg.id} className="group hover:bg-slate-50/50 transition-colors">
-                  <td className="py-4 first:pl-2">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-xl bg-slate-100 overflow-hidden ring-1 ring-slate-100 shrink-0">
-                        <img src={pkg.imageURL || "https://placehold.co/400"} alt="" className="h-full w-full object-cover" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900">{pkg.title}</div>
-                        <div className="text-[10px] text-orange-500 font-bold uppercase tracking-tight">
-                          {pkg.category}
+      {packages.length === 0 ? (
+        <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+          No packages found. Add one to get started.
+        </div>
+      ) : (
+        <>
+          {/* Mobile: Card list */}
+          <div className="space-y-3 md:hidden">
+            {packages.map((pkg) => (
+              <div key={pkg.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="h-14 w-14 rounded-xl bg-slate-100 overflow-hidden ring-1 ring-slate-200 shrink-0">
+                  <img src={pkg.imageURL || "https://placehold.co/400"} alt="" className="h-full w-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-slate-900 text-sm truncate">{pkg.title}</p>
+                  <p className="text-[10px] text-orange-500 font-bold uppercase">{pkg.category}</p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-slate-500 flex items-center gap-1"><MapPin className="h-3 w-3" />{pkg.location}</span>
+                    <span className="text-xs font-bold text-slate-900">{formatCurrency(pkg.price)}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 shrink-0">
+                  <button onClick={() => handleOpenModal(pkg)} className="p-2 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors">
+                    <Edit3 className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => handleDelete(pkg.id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <th className="pb-4 pt-2 pl-2">Package</th>
+                  <th className="pb-4 pt-2">Location</th>
+                  <th className="pb-4 pt-2">Price</th>
+                  <th className="pb-4 pt-2">Duration</th>
+                  <th className="pb-4 pt-2 text-right pr-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {packages.map((pkg) => (
+                  <tr key={pkg.id} className="group hover:bg-slate-50/50 transition-colors">
+                    <td className="py-4 pl-2">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-slate-100 overflow-hidden ring-1 ring-slate-100 shrink-0">
+                          <img src={pkg.imageURL || "https://placehold.co/400"} alt="" className="h-full w-full object-cover" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900">{pkg.title}</div>
+                          <div className="text-[10px] text-orange-500 font-bold uppercase tracking-tight">{pkg.category}</div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="py-4 text-sm text-slate-500 font-medium">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {pkg.location}
-                    </div>
-                  </td>
-                  <td className="py-4 font-bold text-slate-900">{formatCurrency(pkg.price)}</td>
-                  <td className="py-4 text-sm text-slate-500 font-medium">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {pkg.duration}
-                    </div>
-                  </td>
-                  <td className="py-4 text-right last:pr-2">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => handleOpenModal(pkg)}
-                        className="p-2 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(pkg.id)}
-                        className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                    </td>
+                    <td className="py-4 text-sm text-slate-500 font-medium">
+                      <div className="flex items-center gap-1"><MapPin className="h-3 w-3" />{pkg.location}</div>
+                    </td>
+                    <td className="py-4 font-bold text-slate-900">{formatCurrency(pkg.price)}</td>
+                    <td className="py-4 text-sm text-slate-500 font-medium">
+                      <div className="flex items-center gap-1"><Clock className="h-3 w-3" />{pkg.duration}</div>
+                    </td>
+                    <td className="py-4 text-right pr-2">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => handleOpenModal(pkg)} className="p-2 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors">
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => handleDelete(pkg.id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
