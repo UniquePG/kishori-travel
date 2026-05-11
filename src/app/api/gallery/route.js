@@ -1,51 +1,65 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import { DUMMY_GALLERY } from '@/constants';
+import { NextResponse } from "next/server";
+import { db } from "@/db";
+import * as schema from "@/db/schema";
+import { eq, isNull, desc } from "drizzle-orm";
+import { verifyToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
-const dataFilePath = path.join(process.cwd(), 'data', 'gallery.json');
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
-// Helper to get gallery data
-const getGalleryData = () => {
-  try {
-    if (!fs.existsSync(dataFilePath)) {
-      // Ensure the directory exists
-      const dir = path.dirname(dataFilePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(dataFilePath, JSON.stringify(DUMMY_GALLERY, null, 2));
-      return DUMMY_GALLERY;
-    }
-    const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(fileData);
-  } catch (error) {
-    console.error('Error reading gallery data:', error);
-    return DUMMY_GALLERY;
-  }
-};
+async function checkAdmin() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  if (!token) return null;
+  const payload = await verifyToken(token);
+  return payload && payload.role === "admin" ? payload : null;
+}
 
 export async function GET() {
-  const data = getGalleryData();
-  return NextResponse.json(data);
+  try {
+    const items = await db.query.gallery.findMany({
+      where: isNull(schema.gallery.deletedAt),
+      orderBy: [desc(schema.gallery.createdAt)]
+    });
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error("Fetch gallery error:", error);
+    return NextResponse.json({ error: "Failed to fetch gallery items" }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
+  const admin = await checkAdmin();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
-    const newItem = await request.json();
-    const data = getGalleryData();
-    
-    const itemToAdd = {
-      id: Date.now().toString(),
-      ...newItem
-    };
+    const body = await request.json();
+    let { title, description, mediaUrl, mediaType, thumbnailUrl, category, isActive } = body;
 
-    data.push(itemToAdd);
-    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+    // Handle Cloudinary upload for mediaUrl if it's a data URI
+    if (mediaUrl && mediaUrl.startsWith('data:')) {
+      mediaUrl = await uploadToCloudinary(mediaUrl, 'gallery');
+    }
 
-    return NextResponse.json(itemToAdd, { status: 201 });
+    // Handle Cloudinary upload for thumbnailUrl if it's a data URI
+    if (thumbnailUrl && thumbnailUrl.startsWith('data:')) {
+      thumbnailUrl = await uploadToCloudinary(thumbnailUrl, 'gallery/thumbnails');
+    }
+
+    const [item] = await db.insert(schema.gallery).values({
+      title,
+      description,
+      mediaUrl,
+      mediaType,
+      thumbnailUrl,
+      category,
+      isActive: isActive ?? true
+    }).returning();
+
+    return NextResponse.json(item, { status: 201 });
   } catch (error) {
-    console.error('Error adding gallery item:', error);
-    return NextResponse.json({ error: 'Failed to add gallery item' }, { status: 500 });
+    console.error("Gallery create error:", error);
+    return NextResponse.json({ error: error.message || "Failed to add gallery item" }, { status: 500 });
   }
 }
+

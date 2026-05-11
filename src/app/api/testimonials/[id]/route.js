@@ -1,59 +1,66 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { NextResponse } from "next/server";
+import { db } from "@/db";
+import * as schema from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { verifyToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
-const dataFilePath = path.join(process.cwd(), 'data', 'testimonials.json');
-
-const getTestimonialsData = () => {
-  try {
-    if (!fs.existsSync(dataFilePath)) {
-      return [];
-    }
-    const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(fileData);
-  } catch (error) {
-    console.error('Error reading testimonials data:', error);
-    return [];
-  }
-};
+async function checkAdmin() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  if (!token) return null;
+  const payload = await verifyToken(token);
+  return payload && payload.role === "admin" ? payload : null;
+}
 
 export async function PUT(request, { params }) {
+  const admin = await checkAdmin();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+
   try {
-    const { id } = params;
-    const updatedData = await request.json();
-    const data = getTestimonialsData();
+    const { customerName, review, location, imageUrl, rating, isActive } = await request.json();
+    const [item] = await db.update(schema.testimonials)
+      .set({
+        customerName,
+        review,
+        location,
+        imageUrl,
+        rating: Number(rating),
+        isActive: isActive,
+        updatedAt: new Date()
+      })
+      .where(eq(schema.testimonials.id, id))
+      .returning();
+
     
-    const index = data.findIndex(item => item.id === id);
-    if (index === -1) {
-      return NextResponse.json({ error: 'Testimonial not found' }, { status: 404 });
+    if (!item) {
+      return NextResponse.json({ error: "Testimonial not found" }, { status: 404 });
     }
 
-    data[index] = { ...data[index], ...updatedData };
-    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
-
-    return NextResponse.json(data[index]);
+    return NextResponse.json(item);
   } catch (error) {
-    console.error('Error updating testimonial:', error);
-    return NextResponse.json({ error: 'Failed to update testimonial' }, { status: 500 });
+    console.error("Testimonial update error:", error);
+    return NextResponse.json({ error: "Failed to update testimonial" }, { status: 500 });
   }
 }
 
 export async function DELETE(request, { params }) {
+  const admin = await checkAdmin();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+
   try {
-    const { id } = params;
-    let data = getTestimonialsData();
+    // Soft delete
+    await db.update(schema.testimonials)
+      .set({ deletedAt: new Date(), isActive: false })
+      .where(eq(schema.testimonials.id, id));
     
-    const index = data.findIndex(item => item.id === id);
-    if (index === -1) {
-      return NextResponse.json({ error: 'Testimonial not found' }, { status: 404 });
-    }
-
-    data = data.filter(item => item.id !== id);
-    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
-
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting testimonial:', error);
-    return NextResponse.json({ error: 'Failed to delete testimonial' }, { status: 500 });
+    console.error("Testimonial delete error:", error);
+    return NextResponse.json({ error: "Failed to delete testimonial" }, { status: 500 });
   }
 }

@@ -1,49 +1,49 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import { DUMMY_TESTIMONIALS } from '@/constants';
+import { NextResponse } from "next/server";
+import { db } from "@/db";
+import * as schema from "@/db/schema";
+import { eq, isNull, desc } from "drizzle-orm";
+import { verifyToken } from "@/lib/auth";
+import { cookies } from "next/headers";
 
-const dataFilePath = path.join(process.cwd(), 'data', 'testimonials.json');
-
-const getTestimonialsData = () => {
-  try {
-    if (!fs.existsSync(dataFilePath)) {
-      const dir = path.dirname(dataFilePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(dataFilePath, JSON.stringify(DUMMY_TESTIMONIALS, null, 2));
-      return DUMMY_TESTIMONIALS;
-    }
-    const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(fileData);
-  } catch (error) {
-    console.error('Error reading testimonials data:', error);
-    return DUMMY_TESTIMONIALS;
-  }
-};
+async function checkAdmin() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  if (!token) return null;
+  const payload = await verifyToken(token);
+  return payload && payload.role === "admin" ? payload : null;
+}
 
 export async function GET() {
-  const data = getTestimonialsData();
-  return NextResponse.json(data);
+  try {
+    const items = await db.query.testimonials.findMany({
+      where: isNull(schema.testimonials.deletedAt),
+      orderBy: [desc(schema.testimonials.createdAt)]
+    });
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error("Fetch testimonials error:", error);
+    return NextResponse.json({ error: "Failed to fetch testimonials" }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
+  const admin = await checkAdmin();
+  if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
-    const newItem = await request.json();
-    const data = getTestimonialsData();
-    
-    const itemToAdd = {
-      id: Date.now().toString(),
-      ...newItem
-    };
+    const { customerName, review, imageUrl, rating, location, isActive } = await request.json();
+    const [item] = await db.insert(schema.testimonials).values({
+      customerName: customerName,
+      review: review,
+      location: location,
+      rating: Number(rating) || 5,
+      imageUrl: imageUrl,
+      isActive: isActive ?? true
+    }).returning();
 
-    data.push(itemToAdd);
-    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
-
-    return NextResponse.json(itemToAdd, { status: 201 });
+    return NextResponse.json(item, { status: 201 });
   } catch (error) {
-    console.error('Error adding testimonial:', error);
-    return NextResponse.json({ error: 'Failed to add testimonial' }, { status: 500 });
+    console.error("Testimonial create error:", error);
+    return NextResponse.json({ error: "Failed to add testimonial" }, { status: 500 });
   }
 }

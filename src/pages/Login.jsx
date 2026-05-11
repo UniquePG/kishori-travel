@@ -5,21 +5,38 @@ import { useRouter } from "next/navigation";
 import { Lock, User, Plane } from "lucide-react";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-    if (username === "admin" && password === "admin123") {
-      localStorage.setItem("admin_auth", "true");
-      router.push("/admin");
-      return;
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        // Redirection handled by middleware or manually
+        const role = data?.user?.role;
+        router.push(`/${role}/dashboard`);
+        router.refresh();
+      } else {
+        setError(data.error || "Invalid credentials");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setError("Invalid credentials. Try admin / admin123");
   };
 
   return (
@@ -43,16 +60,16 @@ export default function Login() {
           <div className="space-y-6">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                Username
+                Email / Username
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <input
                   type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium text-slate-900"
-                  placeholder="admin"
+                  placeholder="admin@example.com"
                   required
                 />
               </div>
@@ -77,9 +94,14 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full bg-slate-900 text-white rounded-xl py-4 font-bold hover:bg-orange-600 transition-all shadow-xl shadow-slate-900/10 hover:shadow-orange-500/20"
+              disabled={isLoading}
+              className="w-full bg-slate-900 text-white rounded-xl py-4 font-bold hover:bg-orange-600 transition-all shadow-xl shadow-slate-900/10 hover:shadow-orange-500/20 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-h-[60px]"
             >
-              Sign In
+              {isLoading ? (
+                <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                "Sign In"
+              )}
             </button>
           </div>
         </form>

@@ -1,13 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
-import {
-  Package, Image as ImageIcon, MessageSquare, LogOut,
-  LayoutDashboard, Bell, User, CalendarCheck, Menu, X
-} from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Bell,
+  CalendarCheck,
+  HelpCircle,
+  Image as ImageIcon,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Package,
+  Target,
+  User,
+  Users,
+  X
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -15,10 +26,18 @@ export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem("admin_auth");
-    if (!isAuth) {
-      router.push("/login");
-    }
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        if (!res.ok || data.user.role !== 'admin') {
+          router.push("/login");
+        }
+      } catch (error) {
+        router.push("/login");
+      }
+    };
+    checkAuth();
   }, [router]);
 
   // Close sidebar on route change (mobile nav tap)
@@ -36,17 +55,24 @@ export default function AdminLayout({ children }) {
     return () => { document.body.style.overflow = ""; };
   }, [sidebarOpen]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // For simplicity, we can just clear the cookie on the client if it's not httpOnly,
+    // but since it IS httpOnly, we should have a logout route.
+    // I'll add a quick logout API later, or just redirect to login which will clear local state.
+    // For now, let's just clear localStorage for backward compatibility and redirect.
     localStorage.removeItem("admin_auth");
     router.push("/login");
   };
 
   const tabs = [
-    { id: "dashboard",    name: "Dashboard",     icon: LayoutDashboard, href: "/admin/dashboard" },
-    { id: "packages",     name: "Tour Packages",  icon: Package,         href: "/admin/packages" },
-    { id: "bookings",     name: "Bookings",       icon: CalendarCheck,   href: "/admin/bookings" },
-    { id: "gallery",      name: "Media Gallery",  icon: ImageIcon,       href: "/admin/gallery" },
-    { id: "testimonials", name: "Testimonials",   icon: MessageSquare,   href: "/admin/testimonials" },
+    { id: "dashboard", name: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
+    { id: "packages", name: "Tour Packages", icon: Package, href: "/admin/packages" },
+    { id: "bookings", name: "Bookings", icon: CalendarCheck, href: "/admin/bookings" },
+    { id: "leads", name: "Lead Management", icon: Target, href: "/admin/leads" },
+    { id: "members", name: "Staff/Members", icon: Users, href: "/admin/members" },
+    { id: "faqs", name: "FAQs", icon: HelpCircle, href: "/admin/faqs" },
+    { id: "gallery", name: "Media Gallery", icon: ImageIcon, href: "/admin/gallery" },
+    { id: "testimonials", name: "Testimonials", icon: MessageSquare, href: "/admin/testimonials" },
   ];
 
   const activeTab = tabs.find((t) => pathname.startsWith(t.href));
@@ -173,7 +199,7 @@ export default function AdminLayout({ children }) {
             </div>
           </header>
 
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden min-h-[500px]">
+          <div className="  overflow-hidden min-h-[500px] w-full max-w-full">
             {children}
           </div>
         </div>

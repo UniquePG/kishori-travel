@@ -22,13 +22,14 @@ export default function AppShell({ children }) {
     return <LoadingScreen />;
   }
 
-  const isExcludedRoute = pathname.startsWith("/admin") || pathname.startsWith("/login");
+  const isExcludedRoute = pathname === "/" || pathname.startsWith("/admin") || pathname.startsWith("/member") || pathname.startsWith("/login");
 
   return (
-    <div className="min-h-screen bg-[#fdfaf6] selection:bg-orange-200">
+    <div className={`min-h-screen ${isExcludedRoute ? "" : "bg-[#fdfaf6] selection:bg-orange-200"}`}>
       {!isExcludedRoute && <Navbar />}
       <main>{children}</main>
       {!isExcludedRoute && <Footer />}
     </div>
   );
+
 }

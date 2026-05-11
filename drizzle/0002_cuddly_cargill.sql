@@ -1,0 +1,2 @@
+ALTER TABLE "leads" ALTER COLUMN "destination_interest" SET DATA TYPE integer;--> statement-breakpoint
+ALTER TABLE "leads" ADD CONSTRAINT "leads_destination_interest_packages_id_fk" FOREIGN KEY ("destination_interest") REFERENCES "public"."packages"("id") ON DELETE no action ON UPDATE no action;
