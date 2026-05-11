@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 
-export default function HomeVideos() {
+export default function HomeVideos({videos}) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [lightboxVideo, setLightboxVideo] = useState(null);
 
-  const videos = [
+  const allVideos = videos.length > 0 ? videos : [
     { title: "Kedarnath Yatra", desc: "A journey to the heavens.", src: "https://vjs.zencdn.net/v/oceans.mp4" },
     { title: "Kashmir Beauty", desc: "Paradise on Earth.", src: "https://vjs.zencdn.net/v/oceans.mp4" },
     { title: "Manali Snow", desc: "Experience the chill.", src: "https://vjs.zencdn.net/v/oceans.mp4" },
@@ -48,10 +49,10 @@ export default function HomeVideos() {
                 display: 'flex'
             }}
           >
-            {videos.map((v, idx) => (
-              <div key={idx} className="video-card" style={{ flex: `0 0 ${100/visibleCount}%` }}>
-                <div className="video-inner">
-                  <video src={v.src} autoPlay muted loop playsInline />
+            {allVideos.map((v, idx) => (
+              <div key={idx} className="video-card" >
+                <div className="video-inner" onClick={() => setLightboxVideo(v.mediaUrl || v.src)} style={{ cursor: 'pointer' }}>
+                  <video src={v.mediaUrl || v.src} autoPlay muted loop playsInline />
                   <div className="video-info">
                     <h4>{v.title}</h4>
                     <p>{v.desc}</p>
@@ -67,6 +68,12 @@ export default function HomeVideos() {
           <button className="g-btn" onClick={() => moveSlider(1)}><i className="fa-solid fa-chevron-right"></i></button>
         </div>
       </div>
+      {lightboxVideo && (
+        <div className="open" id="lightbox" onClick={() => setLightboxVideo(null)}>
+          <button id="lightbox-close" onClick={() => setLightboxVideo(null)}>✕</button>
+          <video src={lightboxVideo} controls autoPlay style={{ maxWidth: '90vw', maxHeight: '85vh', borderRadius: '12px' }} onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
     </section>
   );
 }

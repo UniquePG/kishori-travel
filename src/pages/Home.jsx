@@ -15,7 +15,7 @@ import HomeTestimonials from "../components/Home/HomeTestimonials";
 import HomeContact from "../components/Home/HomeContact";
 import HomeFooter from "../components/Home/HomeFooter";
 
-export default function Home({ packages = [], gallery = [], testimonials = [] }) {
+export default function Home({ packages = [], gallery = [], testimonials = [], faqs = [] }) {
   useEffect(() => {
     // Reveal animation logic
     const observerOptions = {
@@ -37,6 +37,10 @@ export default function Home({ packages = [], gallery = [], testimonials = [] })
     return () => observer.disconnect();
   }, [packages, gallery, testimonials]);
 
+  const images = gallery.filter(item => item.mediaType === 'photo')
+  const videos = gallery.filter(item => item.mediaType === 'video')
+
+
   return (
     <div className="home-body">
       <HomeNavbar />
@@ -44,9 +48,9 @@ export default function Home({ packages = [], gallery = [], testimonials = [] })
       <HomeSearchBar />
       <HomePackages packages={packages} />
       <HomeWhyUs />
-      <HomeGallery gallery={gallery} />
-      <HomeVideos />
-      <HomeFAQ />
+      <HomeGallery images={images} />
+      <HomeVideos videos={videos} />
+      <HomeFAQ faqs={faqs} />
       <HomeTestimonials testimonials={testimonials} />
       <HomeContact />
       <HomeFooter />

@@ -38,12 +38,12 @@ export default function HomeTestimonials({ testimonials = [] }) {
               <div key={idx} className="testimonial-card">
                 <div className="testimonial-inner">
                   <div className="stars">{"★".repeat(t.rating || 5)}</div>
-                  <div className="testimonial-text">"{t.review || t.text}"</div>
+                  <div className="testimonial-text">"{t.review}"</div>
                   <div className="testimonial-author">
-                    <div className="author-avatar">{t.initials || t.name.charAt(0)}</div>
+                    <div className="author-avatar">{t.customerName.charAt(0)}</div>
                     <div>
-                      <div className="author-name">{t.name}</div>
-                      <div className="author-loc"><i className="fa-solid fa-location-dot"></i> {t.loc || t.location}</div>
+                      <div className="author-name">{t.customerName}</div>
+                      <div className="author-loc"><i className="fa-solid fa-location-dot"></i> {t.location}</div>
                     </div>
                   </div>
                 </div>

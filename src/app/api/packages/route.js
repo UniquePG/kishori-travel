@@ -25,10 +25,41 @@ function slugify(text) {
     .replace(/--+/g, "-");
 }
 
-export async function GET() {
+import { and, gte, lte, ilike, sql } from "drizzle-orm";
+
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const destination = searchParams.get("destination");
+    const duration = searchParams.get("duration");
+    const budget = searchParams.get("budget");
+    const type = searchParams.get("type");
+
+    let conditions = [isNull(schema.packages.deletedAt)];
+
+    if (destination) {
+      conditions.push(ilike(schema.packages.location, `%${destination}%`));
+    }
+
+    if (duration) {
+      conditions.push(eq(schema.packages.durationDays, parseInt(duration)));
+    }
+
+    if (budget) {
+      const [min, max] = budget.split("-").map(Number);
+      if (!isNaN(min)) conditions.push(gte(schema.packages.currentPrice, min.toString()));
+      if (!isNaN(max)) conditions.push(lte(schema.packages.currentPrice, max.toString()));
+    }
+
+    if (type) {
+      // Assuming type matches category
+      conditions.push(ilike(schema.packages.description, `%${type}%`)); 
+      // or if you have a category field:
+      // conditions.push(ilike(schema.packages.category, `%${type}%`));
+    }
+
     const packages = await db.query.packages.findMany({
-      where: isNull(schema.packages.deletedAt),
+      where: and(...conditions),
       orderBy: [desc(schema.packages.createdAt)],
       with: {
         inclusions: true,
@@ -36,6 +67,7 @@ export async function GET() {
         images: true,
       }
     });
+
     return NextResponse.json(packages);
   } catch (error) {
     console.error("Fetch packages error:", error);

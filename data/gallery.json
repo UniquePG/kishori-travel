@@ -23,37 +23,5 @@
     "url": "https://www.w3schools.com/html/mov_bbb.mp4",
     "type": "video",
     "thumbnail": "https://picsum.photos/seed/manali/400/300"
-  },
-  {
-    "id": "1777712127384",
-    "title": "taj mahal",
-    "description": "",
-    "type": "photo",
-    "url": "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=75",
-    "thumbnail": ""
-  },
-  {
-    "id": "1777712166746",
-    "title": "Kerala",
-    "description": "this is karela\n",
-    "type": "photo",
-    "url": "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&q=75",
-    "thumbnail": ""
-  },
-  {
-    "id": "1777712237015",
-    "title": "kerala",
-    "description": "",
-    "type": "video",
-    "url": "https://videos.pexels.com/video-files/13327036/13327036-uhd_2560_1440_25fps.mp4",
-    "thumbnail": "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&q=75"
-  },
-  {
-    "id": "1777712285246",
-    "title": "Himachal",
-    "description": "this is himachal",
-    "type": "video",
-    "url": "https://videos.pexels.com/video-files/18100687/18100687-uhd_1440_2562_60fps.mp4",
-    "thumbnail": ""
   }
 ]

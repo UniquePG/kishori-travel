@@ -1,58 +1,138 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import PackageCard from "@/components/PackageCard";
-import PackageDetailsModal from "@/components/PackageDetailsModal";
-import { Compass } from "lucide-react";
+import ItineraryModal from "@/components/modals/ItineraryModal";
+import HomeFooter from "@/components/Home/HomeFooter";
+import HomeSearchBar from "@/components/Home/HomeSearchBar";
 
 export default function PackagesClientPage({ packages = [] }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedPackage, setSelectedPackage] = useState(null);
 
+  const openItinerary = (pkg) => {
+    setSelectedPackage(pkg);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeItinerary = () => {
+    setSelectedPackage(null);
+    document.body.style.overflow = "";
+  };
+
   return (
-    <div className="min-h-screen bg-[#fcf8f3] flex flex-col">
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6 lg:px-8 bg-white border-b border-slate-100">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none" />
-        <div className="mx-auto max-w-7xl relative z-10 flex flex-col items-center text-center">
-          <div className="h-16 w-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-            <Compass className="h-8 w-8" />
+    <div className="packages-page-wrapper pt-20">
+      {/* Search Header */}
+      <section className="packages-hero bg-white py-16 border-b border-[#f0eae0]">
+        <div className="container">
+          <div className="packages-hero-content flex flex-col items-center mb-8 text-center max-w-[800px] mx-auto">
+            <div className="section-label">All Destinations</div>
+
+            <h1 className="section-title mt-4 text-[2.5rem] md:text-[3.5rem]">
+              Our Complete <em>Collection</em>
+            </h1>
+
+            <p className="section-sub">
+              Browse our entire catalog of handpicked experiences. Whether
+              you're seeking spiritual peace in the Himalayas or vibrant
+              cultural tours, your perfect journey awaits.
+            </p>
           </div>
-          <span className="text-xs font-bold tracking-[0.3em] text-orange-500 uppercase">
-            All Destinations
-          </span>
-          <h1 className="mt-4 font-serif text-5xl text-slate-900 md:text-7xl">
-            Our Complete <span className="italic text-orange-500">Collection</span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg text-slate-500 leading-relaxed">
-            Browse our entire catalog of handpicked experiences. Whether you are seeking spiritual peace in the Himalayas or vibrant cultural tours across the plains, your perfect journey awaits.
-          </p>
+          
+          <HomeSearchBar />
         </div>
       </section>
 
-      {/* Grid Section */}
-      <section className="py-24 px-6 lg:px-8 flex-1">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-            {packages.length === 0 ? (
-              <div className="col-span-full text-center text-slate-500 py-24 bg-white rounded-3xl border border-slate-100 shadow-sm">
-                <h3 className="text-2xl font-serif text-slate-900 mb-2">No Packages Found</h3>
-                <p>We are currently curating new experiences. Please check back later.</p>
-              </div>
-            ) : (
+      {/* Packages Grid */}
+      <section id="packages" className="bg-[#fdfcfb] py-20 min-h-[60vh]">
+        <div className="container">
+          <div className="packages-grid">
+            {packages.length > 0 ? (
               packages.map((pkg) => (
-                <div key={pkg.id} onClick={() => setSelectedPackage(pkg)} className="cursor-pointer">
-                  <PackageCard pkg={pkg} />
+                <div key={pkg.id} className="package-card reveal in">
+                  <div className="pkg-img">
+                    <img
+                      src={pkg.thumbnail}
+                      alt={pkg.title}
+                      loading="lazy"
+                    />
+                  </div>
+
+                  <div className="pkg-body">
+                    <div className="pkg-meta">
+                      <span>
+                        <i className="fa-solid fa-location-dot"></i>{" "}
+                        {pkg.location || pkg.destination}
+                      </span>
+                      <span>
+                        <i className="fa-solid fa-calendar-days"></i>{" "}
+                        {pkg.durationDays}D / {pkg.durationDays - 1}N
+                      </span>
+                    </div>
+
+                    <div className="pkg-title">{pkg.title}</div>
+                    <div className="pkg-desc">
+                      {pkg.description || pkg.desc}
+                    </div>
+
+                    <div className="pkg-footer">
+                      <div className="pkg-price">
+                        <span className="pkg-price-from">
+                          Starting from
+                        </span>
+
+                        <div className="pkg-price-row">
+                          <span className="pkg-price-val">
+                            ₹{pkg.currentPrice}
+                          </span>
+                          {pkg.oldPrice && (
+                            <span className="pkg-price-old">
+                              ₹{pkg.oldPrice}
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="pkg-price-per">
+                          per person
+                        </span>
+                      </div>
+
+                      <button
+                        className="btn-itinerary"
+                        onClick={() => openItinerary(pkg)}
+                      >
+                        View Itinerary
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))
+            ) : (
+              <div className="col-span-full text-center py-16 w-full">
+                <h3 className='font-["Cormorant_Garamond",serif] text-[2rem]'>
+                  No packages found matching your filters.
+                </h3>
+
+                <button
+                  className="btn-primary mt-6"
+                  onClick={() => router.push("/packages")}
+                >
+                  Clear All Filters
+                </button>
+              </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* Modal Overlay */}
-      {selectedPackage && (
-        <PackageDetailsModal pkg={selectedPackage} onClose={() => setSelectedPackage(null)} />
-      )}
+      <HomeFooter />
+
+      <ItineraryModal
+        selectedPackage={selectedPackage}
+        isOpen={!!selectedPackage}
+        onClose={closeItinerary}
+      />
     </div>
   );
 }

@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 
-export default function HomeGallery({ gallery = [] }) {
+export default function HomeGallery({ images = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxImg, setLightboxImg] = useState(null);
 
-  const images = gallery.length > 0 ? gallery : [
+  const allImages = images.length > 0 ? images : [
     "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=75",
     "https://plus.unsplash.com/premium_photo-1697730447144-a2f7257e4a1f?fm=jpg&q=60&w=3000&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&q=75",
@@ -49,15 +49,26 @@ export default function HomeGallery({ gallery = [] }) {
                 transition: 'transform 0.5s ease'
             }}
           >
-            {images.map((src, idx) => (
-              <div key={idx} className="gallery-img">
-                <img 
-                  src={typeof src === 'string' ? src : src.url} 
-                  alt="Gallery" 
-                  onClick={() => setLightboxImg(typeof src === 'string' ? src : src.url)}
-                />
-              </div>
-            ))}
+            {allImages.map((img, idx) => {
+              const src = typeof img === 'string' ? img : img.mediaUrl;
+              const title = typeof img === 'string' ? "Travel Memory" : img.title;
+              const desc = typeof img === 'string' ? "Capturing beauty" : img.description;
+
+              return (
+                <div key={idx} className="gallery-img">
+                  <div className="gallery-img-inner" onClick={() => setLightboxImg(src)}>
+                    <img 
+                      src={src} 
+                      alt="Gallery" 
+                    />
+                    <div className="gallery-info">
+                        <h4>{title}</h4>
+                        <p>{desc}</p>
+                      </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
