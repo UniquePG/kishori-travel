@@ -4,10 +4,7 @@ import * as schema from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
-
-import { cookies } from "next/headers";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { and, isNull } from "drizzle-orm";
 
 async function checkAdmin() {
   const cookieStore = await cookies();

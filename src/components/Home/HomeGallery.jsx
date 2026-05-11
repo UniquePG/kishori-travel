@@ -15,7 +15,7 @@ export default function HomeGallery({ gallery = [] }) {
     "https://images.unsplash.com/photo-1598091383021-15ddea10925d?w=600&q=75"
   ];
 
-  const visibleCount = typeof window !== 'undefined' && window.innerWidth < 600 ? 1 : window.innerWidth < 900 ? 2 : 3;
+  const visibleCount = typeof window !== 'undefined' ? (window.innerWidth < 600 ? 1 : window.innerWidth < 900 ? 2 : 3) : 3;
   const maxIndex = images.length - visibleCount;
 
   useEffect(() => {

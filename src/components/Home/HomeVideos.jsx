@@ -13,7 +13,7 @@ export default function HomeVideos() {
     { title: "Goa Sunset", desc: "Peaceful vibes.", src: "https://vjs.zencdn.net/v/oceans.mp4" }
   ];
 
-  const visibleCount = typeof window !== 'undefined' && window.innerWidth < 600 ? 1 : window.innerWidth < 900 ? 2 : 3;
+  const visibleCount = typeof window !== 'undefined' ? (window.innerWidth < 600 ? 1 : window.innerWidth < 900 ? 2 : 3) : 3;
   const maxIndex = videos.length - visibleCount;
 
   useEffect(() => {
