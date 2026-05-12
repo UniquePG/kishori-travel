@@ -16,7 +16,7 @@ export default function Testimonials({ testimonials = [] }) {
         </h2>
 
         <div className="mt-16 grid gap-8 md:grid-cols-2">
-          {testimonials.map((t) => (
+          {testimonials?.map((t) => (
             <div
               key={t.id}
               className="relative bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-50 text-left group hover:shadow-xl transition-all"
@@ -37,12 +37,12 @@ export default function Testimonials({ testimonials = [] }) {
 
               <div className="flex items-center gap-4">
                 <div className="h-14 w-14 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xl uppercase">
-                  {t.name.charAt(0)}
+                  {t.name?.charAt(0)}
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-900">{t.name}</h4>
                   <p className="text-sm text-slate-400 font-medium">
-                    {t.location} - {t.date}
+                    {t?.location} - {t?.date}
                   </p>
                 </div>
               </div>
