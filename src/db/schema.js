@@ -236,6 +236,23 @@ export const bookings = pgTable('bookings', {
   };
 });
 
+export const packageTerms = pgTable(
+  "package_terms",
+  {
+    id: serial("id").primaryKey(),
+    packageId: integer("package_id")
+      .references(() => packages.id, { onDelete: "cascade" })
+      .notNull(),
+    content: text("content").notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    packageIdx: index("package_terms_package_id_idx").on(table.packageId),
+  })
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // RELATIONS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -259,6 +276,7 @@ export const packagesRelations = relations(packages, ({ one, many }) => ({
   bookings: many(bookings),
   inclusions: many(packageInclusions),
   itinerary: many(packageItinerary),
+  terms: many(packageTerms),
 }));
 
 export const packageItineraryRelations = relations(packageItinerary, ({ one }) => ({
@@ -340,6 +358,13 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   }),
   package: one(packages, {
     fields: [bookings.packageId],
+    references: [packages.id],
+  }),
+}));
+
+export const packageTermsRelations = relations(packageTerms, ({ one }) => ({
+  package: one(packages, {
+    fields: [packageTerms.packageId],
     references: [packages.id],
   }),
 }));

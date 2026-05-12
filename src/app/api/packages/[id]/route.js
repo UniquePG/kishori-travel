@@ -91,6 +91,18 @@ export async function PUT(request, { params }) {
         );
       }
 
+      // Sync terms
+      await tx.delete(schema.packageTerms).where(eq(schema.packageTerms.packageId, id));
+      if (body.terms && body.terms.length > 0) {
+        await tx.insert(schema.packageTerms).values(
+          body.terms.map((term, index) => ({
+            packageId: id,
+            content: term,
+            sortOrder: index,
+          }))
+        );
+      }
+
       return updatedPackage;
     });
 

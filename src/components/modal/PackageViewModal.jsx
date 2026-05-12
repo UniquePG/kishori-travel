@@ -1,6 +1,6 @@
 "use client";
 
-import { X, MapPin, Clock, Check, Star, Info, ShieldCheck, Heart, Share2, Tag } from "lucide-react";
+import { X, MapPin, Clock, Check, Star, Info, ShieldCheck, Heart, Share2, Tag, FileText } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 
 export default function PackageViewModal({ isOpen, onClose, pkg }) {
@@ -198,6 +198,26 @@ export default function PackageViewModal({ isOpen, onClose, pkg }) {
               </div>
             </div>
           </div>
+
+          {/* Terms & Conditions */}
+          {pkg.terms && pkg.terms.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-orange-500" />
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Terms & Conditions</h3>
+              </div>
+              <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-3">
+                {pkg.terms
+                  .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+                  .map((term, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0"></div>
+                      <p className="text-sm font-bold text-slate-700">{term.content}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

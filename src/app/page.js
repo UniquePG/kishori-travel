@@ -7,7 +7,7 @@ const getPackages = async ()=> {
     const res = await fetch(`${BASE_URL}/api/packages`);
     const data = await res.json();
 
-    return data;
+    return data || [];
   } catch (error) {
     console.log("Error fetching packages", error);
     return [];
@@ -18,7 +18,7 @@ const getGalleryData = async ()=>{
   try {
     const res = await fetch(`${BASE_URL}/api/gallery`);
     const data = await res.json();
-    return data;
+    return data || [];
   } catch (error) {
     console.log("Error fetching gallery", error);
     return [];
@@ -29,7 +29,7 @@ const getTestimonialsData = async ()=> {
   try {
     const res = await fetch(`${BASE_URL}/api/testimonials`);
     const data = await res.json();
-    return data;
+    return data || [];
   } catch (error) {
     console.log("Error fetching testimonials", error);
     return [];

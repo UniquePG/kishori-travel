@@ -65,6 +65,7 @@ export async function GET(request) {
         inclusions: true,
         itinerary: true,
         images: true,
+        terms: true,
       }
     });
 
@@ -140,6 +141,16 @@ export async function POST(request) {
             dayNumber: item.dayNumber,
             title: item.title,
             description: item.description,
+          }))
+        );
+      }
+
+      if (body.terms && body.terms.length > 0) {
+        await tx.insert(schema.packageTerms).values(
+          body.terms.map((term, index) => ({
+            packageId: newPackage.id,
+            content: term,
+            sortOrder: index,
           }))
         );
       }

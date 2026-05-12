@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Plus, Trash2, Image as ImageIcon, Upload, Loader2, Check, Info, DollarSign, MapPin, Clock, Star } from "lucide-react";
+import { X, Plus, Trash2, Image as ImageIcon, Upload, Loader2, Check, Info, DollarSign, MapPin, Clock, Star, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function PackageModal({ isOpen, onClose, onSave, editingPackage }) {
@@ -22,7 +22,8 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
     isFeatured: false,
     isActive: true,
     inclusions: [],
-    itinerary: []
+    itinerary: [],
+    terms: [""]
   });
 
   const [previewImage, setPreviewImage] = useState(null);
@@ -35,7 +36,8 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
         currentPrice: editingPackage.currentPrice?.toString() || "",
         oldPrice: editingPackage.oldPrice?.toString() || "",
         inclusions: editingPackage.inclusions || [],
-        itinerary: editingPackage.itinerary || []
+        itinerary: editingPackage.itinerary || [],
+        terms: editingPackage.terms?.map(t => t.content) || [""]
       });
       setPreviewImage(editingPackage.thumbnail);
     } else {
@@ -58,7 +60,8 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
         ],
         itinerary: [
           { dayNumber: 1, title: "Arrival", description: "Arrive at the destination and check-in." }
-        ]
+        ],
+        terms: [""]
       });
       setPreviewImage(null);
       setSelectedFile(null);
@@ -137,6 +140,28 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
     });
   };
 
+  const addTerm = () => {
+    setFormData(prev => ({
+      ...prev,
+      terms: [...prev.terms, ""]
+    }));
+  };
+
+  const removeTerm = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      terms: prev.terms.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateTerm = (index, value) => {
+    setFormData(prev => {
+      const newTerms = [...prev.terms];
+      newTerms[index] = value;
+      return { ...prev, terms: newTerms };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -186,6 +211,7 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
     { id: "pricing", label: "Pricing & Media", icon: DollarSign },
     { id: "itinerary", label: "Itinerary", icon: Clock },
     { id: "inclusions", label: "Inclusions", icon: Check },
+    { id: "terms", label: "Terms", icon: FileText },
   ];
 
   return (
@@ -603,6 +629,58 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
                     })}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Terms & Conditions Tab */}
+          {activeTab === "terms" && (
+            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-base font-black text-slate-900">Terms & Conditions</h3>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={addTerm}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-xs font-bold rounded-xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-600/20 active:scale-95"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Term
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {formData.terms.map((term, idx) => (
+                  <div key={idx} className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="flex-1">
+                      <input 
+                        required
+                        placeholder="e.g. 25% non-refundable deposit required"
+                        value={term}
+                        onChange={(e) => updateTerm(idx, e.target.value)}
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500 outline-none transition-all font-medium text-slate-900"
+                      />
+                    </div>
+                    {formData.terms.length > 1 && (
+                      <button 
+                        type="button"
+                        onClick={() => removeTerm(idx)}
+                        className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                
+                <p className="text-[10px] text-slate-400 font-medium ml-1 mt-2 flex items-center gap-1.5">
+                  <Info className="h-3 w-3" />
+                  Each term will be displayed as a separate point in the package details.
+                </p>
               </div>
             </div>
           )}
