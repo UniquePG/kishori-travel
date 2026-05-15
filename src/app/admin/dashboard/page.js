@@ -15,11 +15,15 @@ import {
   Phone,
   Plus,
   Target,
-  User
+  User,
+  Eye,
+  Edit3,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import LeadViewModal from "@/components/modal/LeadViewModal";
 
 export default function DashboardPage() {
   const [data, setData] = useState({});
@@ -27,6 +31,8 @@ export default function DashboardPage() {
   const [members, setMembers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
+  const [viewingLead, setViewingLead] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
     const handleOpenModal = (lead = null) => {
     setEditingLead(lead);
@@ -36,6 +42,16 @@ export default function DashboardPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingLead(null);
+  };
+
+  const handleOpenViewModal = (lead) => {
+    setViewingLead(lead);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingLead(null);
   };
 
 
@@ -106,6 +122,29 @@ export default function DashboardPage() {
     } catch (error) {
       console.error("Failed to update lead field", error);
       toast.error("Could not update lead");
+    }
+  };
+
+  const handleDeleteLead = async (id) => {
+    if (confirm("Are you sure you want to delete this lead?")) {
+      try {
+        const res = await fetch(`/api/admin/leads?id=${id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setData((prev) => ({
+            ...prev,
+            recentLeads: prev.recentLeads.filter((l) => l.id !== id),
+          }));
+          toast.success("Lead deleted");
+        } else {
+          const err = await res.json().catch(() => ({}));
+          toast.error(err?.error || "Could not delete lead");
+        }
+      } catch (error) {
+        console.error("Failed to delete lead", error);
+        toast.error("Could not delete lead");
+      }
     }
   };
 
@@ -212,13 +251,42 @@ export default function DashboardPage() {
         </select>
       ),
     },
-
     {
       key: "created_at",
       label: "Date",
       render: (row) => (
         <div className="text-xs text-slate-400 whitespace-nowrap">
           {new Date(row.createdAt).toLocaleDateString()}
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      className: "text-right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => handleOpenViewModal(row)}
+            className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all"
+            title="View Details"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => handleOpenModal(row)}
+            className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600 transition-all"
+            title="Edit Lead"
+          >
+            <Edit3 className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => handleDeleteLead(row.id)}
+            className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all"
+            title="Delete Lead"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
         </div>
       ),
     },
@@ -419,6 +487,12 @@ export default function DashboardPage() {
         onClose={handleCloseModal}
         onSuccess={handleModalSuccess}
         editingLead={editingLead}
+      />
+
+      <LeadViewModal
+        isOpen={isViewModalOpen}
+        onClose={handleCloseViewModal}
+        lead={viewingLead}
       />
 
     </div>

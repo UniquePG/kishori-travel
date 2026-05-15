@@ -24,10 +24,12 @@ import {
   MessageCircle,
   Facebook,
   Store,
+  Eye,
 } from "lucide-react";
 import DataTable from "@/components/common/DataTable";
 import { cn } from "@/lib/utils";
 import CreateLeadModal from "@/components/modal/CreateLeadModal";
+import LeadViewModal from "@/components/modal/LeadViewModal";
 import { getSourceIcon } from "@/lib/helpers";
 
 export default function AdminLeads() {
@@ -36,6 +38,8 @@ export default function AdminLeads() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
+  const [viewingLead, setViewingLead] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
 
@@ -107,6 +111,16 @@ export default function AdminLeads() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingLead(null);
+  };
+
+  const handleOpenViewModal = (lead) => {
+    setViewingLead(lead);
+    setIsViewModalOpen(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false);
+    setViewingLead(null);
   };
 
   const handleModalSuccess = (result) => {
@@ -277,6 +291,13 @@ export default function AdminLeads() {
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
           <button
+            onClick={() => handleOpenViewModal(row)}
+            className="p-2 rounded-lg bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all"
+            title="View Details"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button
             onClick={() => handleOpenModal(row)}
             className="p-2 rounded-lg bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600 transition-all"
           >
@@ -324,6 +345,11 @@ export default function AdminLeads() {
         onClose={handleCloseModal}
         onSuccess={handleModalSuccess}
         editingLead={editingLead}
+      />
+      <LeadViewModal
+        isOpen={isViewModalOpen}
+        onClose={handleCloseViewModal}
+        lead={viewingLead}
       />
     </div>
   );
