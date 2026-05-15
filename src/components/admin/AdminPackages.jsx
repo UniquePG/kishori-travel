@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Edit3, Trash2, MapPin, Clock, Plus, Eye, Star, AlertCircle, Loader2 } from "lucide-react";
 import { formatCurrency, cn } from "../../lib/utils";
 import PackageModal from "../modal/PackageModal";
@@ -30,6 +31,7 @@ export default function AdminPackages() {
       setPackages(data);
     } catch (error) {
       console.error("Failed to fetch packages", error);
+      toast.error("Could not load packages");
     } finally {
       setIsLoading(false);
     }
@@ -59,9 +61,10 @@ export default function AdminPackages() {
         const res = await fetch(`/api/packages/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error("Failed to delete package");
         setPackages(prev => prev.filter((p) => p.id !== id));
+        toast.success("Package removed");
       } catch (error) {
         console.error("Failed to delete package", error);
-        alert("Failed to delete package");
+        toast.error("Could not delete package");
       }
     }
   };
@@ -86,13 +89,23 @@ export default function AdminPackages() {
           </div>
           <div className="min-w-0">
             <div className="font-black text-slate-900 truncate max-w-[200px]">{pkg.title}</div>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex flex-wrap items-center gap-2 mt-0.5">
               <span className="text-[10px] font-black text-[#e8611a] uppercase tracking-tight bg-orange-50 px-2 py-0.5 rounded-md">
                 {pkg.durationDays} Days
               </span>
               {pkg.isFeatured && (
                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-tight bg-blue-50 px-2 py-0.5 rounded-md">
                   Featured
+                </span>
+              )}
+              {pkg.isUpcoming && (
+                <span className="text-[10px] font-black text-amber-800 uppercase tracking-tight bg-amber-100 px-2 py-0.5 rounded-md">
+                  Upcoming
+                </span>
+              )}
+              {pkg.offerTitle && (
+                <span className="text-[10px] font-black text-emerald-800 uppercase tracking-tight bg-emerald-50 px-2 py-0.5 rounded-md max-w-[120px] truncate" title={pkg.offerTitle}>
+                  Offer
                 </span>
               )}
             </div>

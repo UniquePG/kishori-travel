@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { eq, isNull, desc } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, isNull, lte } from "drizzle-orm";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
-
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
 async function checkAdmin() {
@@ -25,7 +24,44 @@ function slugify(text) {
     .replace(/--+/g, "-");
 }
 
-import { and, gte, lte, ilike, sql } from "drizzle-orm";
+function parseOptionalDate(value) {
+  if (value == null || value === "") return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Valid room-sharing rows for insert (label + numeric price). */
+function normalizeRoomSharingOptions(body) {
+  const rows = body.roomSharingOptions;
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((r, index) => {
+      const label = (r?.label ?? "").toString().trim();
+      const raw = r?.price;
+      const priceStr =
+        raw != null && raw !== "" ? Number(raw).toString() : "";
+      if (!label || priceStr === "" || Number.isNaN(Number(priceStr))) return null;
+      return { label, price: priceStr, sortOrder: index };
+    })
+    .filter(Boolean);
+}
+
+const packageRelationsQuery = {
+  inclusions: true,
+  itinerary: true,
+  images: true,
+  terms: true,
+  roomSharingOptions: {
+    orderBy: (row, { asc }) => [asc(row.sortOrder)],
+  },
+};
+
+async function fetchPackageWithRelations(packageId) {
+  return db.query.packages.findFirst({
+    where: eq(schema.packages.id, packageId),
+    with: packageRelationsQuery,
+  });
+}
 
 export async function GET(request) {
   try {
@@ -34,39 +70,36 @@ export async function GET(request) {
     const duration = searchParams.get("duration");
     const budget = searchParams.get("budget");
     const type = searchParams.get("type");
+    const activeOnly = searchParams.get("activeOnly") === "1";
 
-    let conditions = [isNull(schema.packages.deletedAt)];
+    const conditions = [isNull(schema.packages.deletedAt)];
+
+    if (activeOnly) {
+      conditions.push(eq(schema.packages.isActive, true));
+    }
 
     if (destination) {
       conditions.push(ilike(schema.packages.location, `%${destination}%`));
     }
 
     if (duration) {
-      conditions.push(eq(schema.packages.durationDays, parseInt(duration)));
+      conditions.push(eq(schema.packages.durationDays, parseInt(duration, 10)));
     }
 
     if (budget) {
       const [min, max] = budget.split("-").map(Number);
-      if (!isNaN(min)) conditions.push(gte(schema.packages.currentPrice, min.toString()));
-      if (!isNaN(max)) conditions.push(lte(schema.packages.currentPrice, max.toString()));
+      if (!Number.isNaN(min)) conditions.push(gte(schema.packages.currentPrice, min.toString()));
+      if (!Number.isNaN(max)) conditions.push(lte(schema.packages.currentPrice, max.toString()));
     }
 
     if (type) {
-      // Assuming type matches category
-      conditions.push(ilike(schema.packages.description, `%${type}%`)); 
-      // or if you have a category field:
-      // conditions.push(ilike(schema.packages.category, `%${type}%`));
+      conditions.push(ilike(schema.packages.packageType, `%${type}%`));
     }
 
     const packages = await db.query.packages.findMany({
       where: and(...conditions),
       orderBy: [desc(schema.packages.createdAt)],
-      with: {
-        inclusions: true,
-        itinerary: true,
-        images: true,
-        terms: true,
-      }
+      with: packageRelationsQuery,
     });
 
     return NextResponse.json(packages);
@@ -89,7 +122,7 @@ export async function POST(request) {
       const formData = await request.formData();
       const dataStr = formData.get("data");
       body = JSON.parse(dataStr);
-      
+
       const file = formData.get("thumbnail");
       if (file && typeof file !== "string") {
         const bytes = await file.arrayBuffer();
@@ -105,28 +138,37 @@ export async function POST(request) {
     }
 
     const slug = body.slug || slugify(body.title);
-    
-    // Start a transaction to ensure all related data is created
-    const result = await db.transaction(async (tx) => {
-      const [newPackage] = await tx.insert(schema.packages).values({
-        title: body.title,
-        slug: slug,
-        shortDescription: body.shortDescription,
-        description: body.description,
-        location: body.location,
-        durationDays: parseInt(body.durationDays),
-        currentPrice: body.currentPrice.toString(),
-        oldPrice: body.oldPrice ? body.oldPrice.toString() : null,
-        thumbnail: thumbnail,
-        isFeatured: body.isFeatured ?? false,
-        isActive: body.isActive ?? true,
-        createdBy: admin.id,
-      }).returning();
+    const roomRows = normalizeRoomSharingOptions(body);
+
+    const newPackage = await db.transaction(async (tx) => {
+      const [inserted] = await tx
+        .insert(schema.packages)
+        .values({
+          title: body.title,
+          slug,
+          packageType: body.packageType,
+          description: body.description,
+          location: body.location,
+          durationDays: parseInt(body.durationDays, 10),
+          currentPrice: body.currentPrice.toString(),
+          oldPrice: body.oldPrice ? body.oldPrice.toString() : null,
+          thumbnail,
+          isFeatured: body.isFeatured ?? false,
+          isActive: body.isActive ?? true,
+          isUpcoming: body.isUpcoming ?? false,
+          upcomingLabel: body.upcomingLabel?.trim() || null,
+          expectedLaunchAt: parseOptionalDate(body.expectedLaunchAt),
+          offerTitle: body.offerTitle?.trim() || null,
+          offerDescription: body.offerDescription?.trim() || null,
+          offerValidUntil: parseOptionalDate(body.offerValidUntil),
+          createdBy: parseInt(String(admin.id), 10),
+        })
+        .returning();
 
       if (body.inclusions && body.inclusions.length > 0) {
         await tx.insert(schema.packageInclusions).values(
           body.inclusions.map((inc, index) => ({
-            packageId: newPackage.id,
+            packageId: inserted.id,
             type: inc.type,
             title: inc.title,
             sortOrder: index,
@@ -137,7 +179,7 @@ export async function POST(request) {
       if (body.itinerary && body.itinerary.length > 0) {
         await tx.insert(schema.packageItinerary).values(
           body.itinerary.map((item) => ({
-            packageId: newPackage.id,
+            packageId: inserted.id,
             dayNumber: item.dayNumber,
             title: item.title,
             description: item.description,
@@ -148,17 +190,29 @@ export async function POST(request) {
       if (body.terms && body.terms.length > 0) {
         await tx.insert(schema.packageTerms).values(
           body.terms.map((term, index) => ({
-            packageId: newPackage.id,
+            packageId: inserted.id,
             content: term,
             sortOrder: index,
           }))
         );
       }
 
-      return newPackage;
+      if (roomRows.length > 0) {
+        await tx.insert(schema.packageRoomSharingOptions).values(
+          roomRows.map((row, index) => ({
+            packageId: inserted.id,
+            label: row.label,
+            price: row.price,
+            sortOrder: index,
+          }))
+        );
+      }
+
+      return inserted;
     });
 
-    return NextResponse.json(result, { status: 201 });
+    const full = await fetchPackageWithRelations(newPackage.id);
+    return NextResponse.json(full ?? newPackage, { status: 201 });
   } catch (error) {
     console.error("Package create error:", error);
     return NextResponse.json({ error: "Failed to create package: " + error.message }, { status: 500 });

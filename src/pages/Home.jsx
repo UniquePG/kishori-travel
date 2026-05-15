@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import "../styles/home-reference.css";
 
 import HomeNavbar from "../components/Home/HomeNavbar";
@@ -16,8 +16,16 @@ import HomeContact from "../components/Home/HomeContact";
 import HomeFooter from "../components/Home/HomeFooter";
 
 export default function Home({ packages = [], gallery = [], testimonials = [], faqs = [] }) {
+  console.log("Allpackages ", packages)
+  const { popularPackages, upcomingPackages } = useMemo(() => {
+    const list = Array.isArray(packages) ? packages : [];
+    return {
+      popularPackages: list.filter((p) => !p?.isUpcoming).slice(0, 6),
+      upcomingPackages: list.filter((p) => p?.isUpcoming),
+    };
+  }, [packages]);
+
   useEffect(() => {
-    // Reveal animation logic
     const observerOptions = {
       threshold: 0.12,
     };
@@ -37,16 +45,15 @@ export default function Home({ packages = [], gallery = [], testimonials = [], f
     return () => observer.disconnect();
   }, [packages, gallery, testimonials]);
 
-  const images = gallery.filter(item => item.mediaType === 'photo')
-  const videos = gallery.filter(item => item.mediaType === 'video')
-
+  const images = gallery.filter((item) => item.mediaType === "photo");
+  const videos = gallery.filter((item) => item.mediaType === "video");
 
   return (
     <div className="home-body">
       <HomeNavbar />
       <HomeHero />
       <HomeSearchBar />
-      <HomePackages packages={packages} />
+      <HomePackages popularPackages={popularPackages} upcomingPackages={upcomingPackages} />
       <HomeWhyUs />
       <HomeGallery images={images} />
       <HomeVideos videos={videos} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { 
   Edit3, Trash2, Plus, X, HelpCircle, ChevronDown, 
   ChevronUp, CheckCircle2, XCircle, Clock 
@@ -31,10 +32,16 @@ export default function AdminFaqs() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/faqs");
-      const data = await res.json();
-      setFaqs(data);
+      if (!res.ok) {
+        toast.error("Could not load FAQs");
+        setFaqs([]);
+      } else {
+        const data = await res.json();
+        setFaqs(data);
+      }
     } catch (error) {
       console.error("Failed to fetch FAQs", error);
+      toast.error("Could not load FAQs");
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +79,12 @@ export default function AdminFaqs() {
           body: JSON.stringify(formData)
         });
         const updated = await res.json();
+        if (!res.ok) {
+          toast.error(updated?.error || "Could not save FAQ");
+          return;
+        }
         setFaqs(faqs.map(f => f.id === updated.id ? updated : f));
+        toast.success("FAQ updated");
       } else {
         const res = await fetch("/api/faqs", {
           method: "POST",
@@ -80,23 +92,34 @@ export default function AdminFaqs() {
           body: JSON.stringify(formData)
         });
         const created = await res.json();
+        if (!res.ok) {
+          toast.error(created?.error || "Could not create FAQ");
+          return;
+        }
         setFaqs([...faqs, created]);
+        toast.success("FAQ created");
       }
       handleCloseModal();
     } catch (error) {
       console.error("Failed to save FAQ", error);
-      alert("Failed to save FAQ");
+      toast.error("Could not save FAQ");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this FAQ?")) {
       try {
-        await fetch(`/api/faqs/${id}`, { method: "DELETE" });
-        setFaqs(faqs.filter((f) => f.id !== id));
+        const res = await fetch(`/api/faqs/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setFaqs(faqs.filter((f) => f.id !== id));
+          toast.success("FAQ deleted");
+        } else {
+          const err = await res.json().catch(() => ({}));
+          toast.error(err?.error || "Could not delete FAQ");
+        }
       } catch (error) {
         console.error("Failed to delete FAQ", error);
-        alert("Failed to delete FAQ");
+        toast.error("Could not delete FAQ");
       }
     }
   };

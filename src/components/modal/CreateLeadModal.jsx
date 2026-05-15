@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const INITIAL_FORM_STATE = {
   fullName: "",
@@ -29,7 +32,7 @@ function CreateLeadModal({ isOpen, onClose, onSuccess, editingLead = null }) {
       try {
         const [membersRes, packagesRes] = await Promise.all([
           fetch("/api/admin/members"),
-          fetch("/api/packages"),
+          fetch("/api/packages?activeOnly=1"),
         ]);
         
         const membersData = await membersRes.json();
@@ -39,6 +42,7 @@ function CreateLeadModal({ isOpen, onClose, onSuccess, editingLead = null }) {
         setPackages(packagesData);
       } catch (error) {
         console.error("Failed to fetch modal data", error);
+        toast.error("Could not load form data");
       } finally {
         setIsLoadingData(false);
       }
@@ -86,12 +90,13 @@ function CreateLeadModal({ isOpen, onClose, onSuccess, editingLead = null }) {
       if (res.ok) {
         if (onSuccess) onSuccess(result);
         onClose();
+        toast.success(editingLead ? "Lead updated" : "Lead created");
       } else {
-        alert(result.error || "Failed to save lead");
+        toast.error(result.error || "Could not save lead");
       }
     } catch (error) {
       console.error("Failed to save lead", error);
-      alert("An error occurred while saving the lead");
+      toast.error("Could not save lead");
     } finally {
       setIsSubmitting(false);
     }

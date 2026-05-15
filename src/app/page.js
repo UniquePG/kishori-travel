@@ -1,18 +1,18 @@
 import Home from "@/pages/Home";
 
-const BASE_URL = process.env.BASE_URL;
+const BASE_URL =
+  process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
-const getPackages = async ()=> {
+const getPackages = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/api/packages`);
+    const res = await fetch(`${BASE_URL}/api/packages?activeOnly=1`, { next: { revalidate: 60 } });
     const data = await res.json();
-
     return data || [];
   } catch (error) {
     console.log("Error fetching packages", error);
     return [];
   }
-}
+};
 
 const getGalleryData = async ()=>{
   try {

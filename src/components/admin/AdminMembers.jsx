@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { 
   Edit3, Trash2, Plus, X, User, Phone, Mail, 
   Shield, ShieldCheck, UserCog, Clock, CheckCircle2, XCircle, TrendingUp 
@@ -36,10 +37,16 @@ export default function AdminMembers() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/admin/members");
-      const data = await res.json();
-      setMembers(data);
+      if (!res.ok) {
+        toast.error("Could not load staff");
+        setMembers([]);
+      } else {
+        const data = await res.json();
+        setMembers(data);
+      }
     } catch (error) {
       console.error("Failed to fetch members", error);
+      toast.error("Could not load staff");
     } finally {
       setIsLoading(false);
     }
@@ -85,8 +92,9 @@ export default function AdminMembers() {
         if (res.ok) {
           setMembers(members.map(m => m.id === updated.id ? updated : m));
           handleCloseModal();
+          toast.success("Team member updated");
         } else {
-          alert(updated.error || "Failed to update");
+          toast.error(updated.error || "Could not update member");
         }
       } else {
         const res = await fetch("/api/admin/members", {
@@ -98,13 +106,14 @@ export default function AdminMembers() {
         if (res.ok) {
           setMembers([created, ...members]);
           handleCloseModal();
+          toast.success("Team member created");
         } else {
-          alert(created.error || "Failed to create");
+          toast.error(created.error || "Could not create member");
         }
       }
     } catch (error) {
       console.error("Failed to save member", error);
-      alert("An error occurred");
+      toast.error("Something went wrong");
     }
   };
 
@@ -114,9 +123,14 @@ export default function AdminMembers() {
         const res = await fetch(`/api/admin/members?id=${id}`, { method: "DELETE" });
         if (res.ok) {
           setMembers(members.filter((m) => m.id !== id));
+          toast.success("Team member removed");
+        } else {
+          const err = await res.json().catch(() => ({}));
+          toast.error(err?.error || "Could not delete member");
         }
       } catch (error) {
         console.error("Failed to delete member", error);
+        toast.error("Could not delete member");
       }
     }
   };

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 export default function HomeSearchBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [filterData, setFilterData] = useState({ destinations: [], durations: [] });
+  const [filterData, setFilterData] = useState({ destinations: [], durations: [], packageTypes: [] });
   
   const [selectedFilters, setSelectedFilters] = useState({
     destination: searchParams.get("destination") || "",
@@ -97,12 +97,9 @@ export default function HomeSearchBar() {
                 onChange={(e) => handleFilterChange("type", e.target.value)}
               >
                 <option value="">All Types</option>
-                <option value="Hill Station">Hill Station</option>
-                <option value="Beach Holiday">Beach Holiday</option>
-                <option value="Cultural">Cultural & Heritage</option>
-                <option value="Adventure">Adventure</option>
-                <option value="Spiritual">Spiritual</option>
-                <option value="International">International</option>
+                {filterData.packageTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
             </div>
             <button className="btn-primary search-btn" onClick={handleSearch}>

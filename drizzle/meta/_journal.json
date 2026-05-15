@@ -57,6 +57,13 @@
       "when": 1778578929168,
       "tag": "0007_skinny_quicksilver",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778764567976,
+      "tag": "0008_package_upcoming_offers_sharing",
+      "breakpoints": true
     }
   ]
 }

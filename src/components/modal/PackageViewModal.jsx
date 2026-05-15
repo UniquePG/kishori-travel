@@ -37,12 +37,24 @@ export default function PackageViewModal({ isOpen, onClose, pkg }) {
           </div>
 
           {/* Featured Badge */}
-          {pkg.isFeatured && (
-            <div className="absolute top-6 left-6 px-4 py-2 bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-orange-500/30 flex items-center gap-2">
-              <Star className="h-3 w-3 fill-white" />
-              Featured
-            </div>
-          )}
+          <div className="absolute top-6 left-6 flex flex-col gap-2 z-10 max-w-[200px]">
+            {pkg.isFeatured && (
+              <div className="px-4 py-2 bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-orange-500/30 flex items-center gap-2 w-fit">
+                <Star className="h-3 w-3 fill-white" />
+                Featured
+              </div>
+            )}
+            {pkg.isUpcoming && (
+              <div className="px-4 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg w-fit">
+                Upcoming
+              </div>
+            )}
+            {pkg.offerTitle && (
+              <div className="px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg w-fit line-clamp-2">
+                Offer: {pkg.offerTitle}
+              </div>
+            )}
+          </div>
 
           {/* Basic Info Floating on Image */}
           <div className="absolute bottom-8 left-8 right-8">
@@ -104,15 +116,56 @@ export default function PackageViewModal({ isOpen, onClose, pkg }) {
             </div>
           </div>
 
+          {pkg.offerTitle && (
+            <div className="p-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-[2rem] border border-orange-100">
+              <p className="text-[10px] font-black uppercase text-orange-700 tracking-widest mb-1">Offer</p>
+              <p className="text-xl font-black text-slate-900">{pkg.offerTitle}</p>
+              {pkg.offerDescription && (
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed">{pkg.offerDescription}</p>
+              )}
+              {pkg.offerValidUntil && (
+                <p className="text-xs font-bold text-amber-800 mt-2">
+                  Valid until {new Date(pkg.offerValidUntil).toLocaleDateString("en-IN", { dateStyle: "medium" })}
+                </p>
+              )}
+            </div>
+          )}
+
+          {pkg.roomSharingOptions && pkg.roomSharingOptions.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-orange-500" />
+                <h3 className="text-lg font-black text-slate-900">Room sharing prices</h3>
+              </div>
+              <div className="rounded-2xl border border-slate-100 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="text-left px-4 py-2 font-bold text-slate-500">Type</th>
+                      <th className="text-left px-4 py-2 font-bold text-slate-500">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...pkg.roomSharingOptions]
+                      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+                      .map((row) => (
+                        <tr key={row.id} className="border-t border-slate-100">
+                          <td className="px-4 py-2 font-semibold text-slate-800">{row.label}</td>
+                          <td className="px-4 py-2 font-black text-slate-900">{formatCurrency(row.price)}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* Overview */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Info className="h-5 w-5 text-orange-500" />
               <h3 className="text-xl font-black text-slate-900 tracking-tight">Tour Overview</h3>
             </div>
-            <p className="text-lg font-bold text-slate-600 leading-relaxed max-w-4xl">
-              {pkg.shortDescription}
-            </p>
             <div className="text-base text-slate-500 leading-relaxed whitespace-pre-wrap font-medium">
               {pkg.description}
             </div>

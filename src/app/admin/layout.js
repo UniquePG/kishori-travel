@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -30,11 +31,13 @@ export default function AdminLayout({ children }) {
       try {
         const res = await fetch("/api/auth/me");
         const data = await res.json();
-        if (!res.ok || data.user.role !== 'admin') {
+        if (!res.ok || data?.user?.role !== "admin") {
           router.push("/login");
+          toast.error("Please sign in as admin");
         }
       } catch (error) {
         router.push("/login");
+        toast.error("Session check failed");
       }
     };
     checkAuth();
@@ -56,11 +59,8 @@ export default function AdminLayout({ children }) {
   }, [sidebarOpen]);
 
   const handleLogout = async () => {
-    // For simplicity, we can just clear the cookie on the client if it's not httpOnly,
-    // but since it IS httpOnly, we should have a logout route.
-    // I'll add a quick logout API later, or just redirect to login which will clear local state.
-    // For now, let's just clear localStorage for backward compatibility and redirect.
     localStorage.removeItem("admin_auth");
+    toast.success("Signed out");
     router.push("/login");
   };
 

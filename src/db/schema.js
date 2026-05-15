@@ -37,6 +37,7 @@ export const packages = pgTable('packages', {
   slug: varchar('slug', { length: 255 }).notNull().unique(),
   shortDescription: text('short_description'),
   description: text('description').notNull(),
+  packageType: varchar('package_type', { length: 100 }),
   location: varchar('location', { length: 255 }).notNull(),
   durationDays: integer('duration_days').notNull(),
   currentPrice: decimal('current_price', { precision: 12, scale: 2 }).notNull(),
@@ -44,6 +45,13 @@ export const packages = pgTable('packages', {
   thumbnail: text('thumbnail'),
   isFeatured: boolean('is_featured').default(false).notNull(),
   isActive: boolean('is_active').default(true).notNull(),
+  /** Shown in "Upcoming trips" on marketing pages; excluded from main popular grid when true. */
+  isUpcoming: boolean('is_upcoming').default(false).notNull(),
+  upcomingLabel: varchar('upcoming_label', { length: 255 }),
+  expectedLaunchAt: timestamp('expected_launch_at'),
+  offerTitle: varchar('offer_title', { length: 255 }),
+  offerDescription: text('offer_description'),
+  offerValidUntil: timestamp('offer_valid_until'),
   createdBy: integer('created_by').references(() => users.id).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -103,6 +111,24 @@ export const packageImages = pgTable('package_images', {
     sortIdx: index('package_images_sort_order_idx').on(table.sortOrder),
   };
 });
+
+export const packageRoomSharingOptions = pgTable(
+  "package_room_sharing_options",
+  {
+    id: serial("id").primaryKey(),
+    packageId: integer("package_id")
+      .references(() => packages.id, { onDelete: "cascade" })
+      .notNull(),
+    label: varchar("label", { length: 255 }).notNull(),
+    price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    packageIdx: index("package_room_sharing_options_package_id_idx").on(table.packageId),
+  })
+);
 
 export const gallery = pgTable('gallery', {
   id: serial('id').primaryKey(),
@@ -277,6 +303,7 @@ export const packagesRelations = relations(packages, ({ one, many }) => ({
   inclusions: many(packageInclusions),
   itinerary: many(packageItinerary),
   terms: many(packageTerms),
+  roomSharingOptions: many(packageRoomSharingOptions),
 }));
 
 export const packageItineraryRelations = relations(packageItinerary, ({ one }) => ({
@@ -365,6 +392,13 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
 export const packageTermsRelations = relations(packageTerms, ({ one }) => ({
   package: one(packages, {
     fields: [packageTerms.packageId],
+    references: [packages.id],
+  }),
+}));
+
+export const packageRoomSharingOptionsRelations = relations(packageRoomSharingOptions, ({ one }) => ({
+  package: one(packages, {
+    fields: [packageRoomSharingOptions.packageId],
     references: [packages.id],
   }),
 }));

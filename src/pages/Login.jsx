@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, User, Plane } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,15 +26,18 @@ export default function Login() {
 
       const data = await response.json();
       if (response.ok) {
-        // Redirection handled by middleware or manually
         const role = data?.user?.role;
+        toast.success("Welcome back");
         router.push(`/${role}/dashboard`);
         router.refresh();
       } else {
-        setError(data.error || "Invalid credentials");
+        const msg = data.error || "Invalid credentials";
+        setError(msg);
+        toast.error(msg);
       }
     } catch (err) {
       setError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }

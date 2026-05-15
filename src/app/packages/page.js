@@ -6,14 +6,15 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 const getPackages = async (searchParams) => {
   try {
     const params = new URLSearchParams(searchParams);
-    const res = await fetch(`${BASE_URL}/api/packages?${params.toString()}`, { cache: 'no-store' });
+    if (!params.has("activeOnly")) params.set("activeOnly", "1");
+    const res = await fetch(`${BASE_URL}/api/packages?${params.toString()}`, { cache: "no-store" });
     const data = await res.json();
     return data;
   } catch (error) {
     console.log("Error fetching packages", error);
     return [];
   }
-}
+};
 
 export default async function PackagesPage({ searchParams }) {
   const params = await searchParams;

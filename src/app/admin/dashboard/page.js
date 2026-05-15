@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const [data, setData] = useState({});
@@ -41,10 +42,16 @@ export default function DashboardPage() {
   const fetchMembers = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/members");
-      const data = await res.json();
-      setMembers(data);
+      if (!res.ok) {
+        toast.error("Could not load team members");
+        setMembers([]);
+      } else {
+        const data = await res.json();
+        setMembers(data);
+      }
     } catch (error) {
       console.error("Failed to fetch members", error);
+      toast.error("Could not load team members");
     }
   }, [])
 
@@ -53,11 +60,16 @@ export default function DashboardPage() {
   const fetchStats = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/stats");
-      const json = await res.json();
-      console.log("json ", json)
-      setData(json || []);
+      if (!res.ok) {
+        toast.error("Could not load dashboard");
+        setData({});
+      } else {
+        const json = await res.json();
+        setData(json || {});
+      }
     } catch (error) {
       console.error("Failed to fetch dashboard stats", error);
+      toast.error("Could not load dashboard");
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +82,11 @@ export default function DashboardPage() {
 
   const handleUpdateLeadField = async (id, field, value) => {
     try {
-      const lead = data.recentLeads.find(l => l.id === id);
+      const lead = (data.recentLeads || []).find((l) => l.id === id);
+      if (!lead) {
+        toast.error("Lead not found");
+        return;
+      }
       const res = await fetch(`/api/admin/leads`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -78,13 +94,18 @@ export default function DashboardPage() {
       });
       const updated = await res.json();
       if (res.ok) {
-        setData(prevData => ({
+        setData((prevData) => ({
           ...prevData,
-          recentLeads: prevData.recentLeads.map(l => l.id === updated.id ? updated : l)
+          recentLeads: (prevData.recentLeads || []).map((l) =>
+            l.id === updated.id ? updated : l
+          ),
         }));
+      } else {
+        toast.error(updated?.error || "Could not update lead");
       }
     } catch (error) {
       console.error("Failed to update lead field", error);
+      toast.error("Could not update lead");
     }
   };
 
@@ -99,8 +120,6 @@ export default function DashboardPage() {
     };
     return colors[status] || "bg-slate-100 text-slate-500";
   };
-
-  console.log("dataa.recentleads", data?.recentLeads)
 
   const columns = [
     {

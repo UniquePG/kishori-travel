@@ -1,8 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Plus, Trash2, Image as ImageIcon, Upload, Loader2, Check, Info, DollarSign, MapPin, Clock, Star, FileText } from "lucide-react";
+import { X, Plus, Trash2, Image as ImageIcon, Upload, Loader2, Check, Info, DollarSign, MapPin, Clock, Star, FileText, Calendar, Tag, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+function toDatetimeLocal(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export default function PackageModal({ isOpen, onClose, onSave, editingPackage }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,7 +21,7 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
-    shortDescription: "",
+    packageType: "",
     description: "",
     location: "",
     durationDays: 1,
@@ -21,6 +30,13 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
     thumbnail: "",
     isFeatured: false,
     isActive: true,
+    isUpcoming: false,
+    upcomingLabel: "",
+    expectedLaunchAt: "",
+    offerTitle: "",
+    offerDescription: "",
+    offerValidUntil: "",
+    roomSharingOptions: [],
     inclusions: [],
     itinerary: [],
     terms: [""]
@@ -33,18 +49,30 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
     if (editingPackage) {
       setFormData({
         ...editingPackage,
+        packageType: editingPackage.packageType || "",
         currentPrice: editingPackage.currentPrice?.toString() || "",
         oldPrice: editingPackage.oldPrice?.toString() || "",
+        isUpcoming: !!editingPackage.isUpcoming,
+        upcomingLabel: editingPackage.upcomingLabel || "",
+        expectedLaunchAt: toDatetimeLocal(editingPackage.expectedLaunchAt),
+        offerTitle: editingPackage.offerTitle || "",
+        offerDescription: editingPackage.offerDescription || "",
+        offerValidUntil: toDatetimeLocal(editingPackage.offerValidUntil),
+        roomSharingOptions:
+          editingPackage.roomSharingOptions?.map((r) => ({
+            label: r.label || "",
+            price: r.price != null ? String(r.price) : "",
+          })) || [],
         inclusions: editingPackage.inclusions || [],
         itinerary: editingPackage.itinerary || [],
-        terms: editingPackage.terms?.map(t => t.content) || [""]
+        terms: editingPackage.terms?.map((t) => t.content) || [""],
       });
       setPreviewImage(editingPackage.thumbnail);
     } else {
       setFormData({
         title: "",
         slug: "",
-        shortDescription: "",
+        packageType: "",
         description: "",
         location: "",
         durationDays: 1,
@@ -53,15 +81,20 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
         thumbnail: "",
         isFeatured: false,
         isActive: true,
+        isUpcoming: false,
+        upcomingLabel: "",
+        expectedLaunchAt: "",
+        offerTitle: "",
+        offerDescription: "",
+        offerValidUntil: "",
+        roomSharingOptions: [],
         inclusions: [
           { type: "included", title: "Accommodation" },
           { type: "included", title: "Breakfast" },
-          { type: "excluded", title: "Personal Expenses" }
+          { type: "excluded", title: "Personal Expenses" },
         ],
-        itinerary: [
-          { dayNumber: 1, title: "Arrival", description: "Arrive at the destination and check-in." }
-        ],
-        terms: [""]
+        itinerary: [{ dayNumber: 1, title: "Arrival", description: "Arrive at the destination and check-in." }],
+        terms: [""],
       });
       setPreviewImage(null);
       setSelectedFile(null);
@@ -155,10 +188,32 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
   };
 
   const updateTerm = (index, value) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const newTerms = [...prev.terms];
       newTerms[index] = value;
       return { ...prev, terms: newTerms };
+    });
+  };
+
+  const addRoomSharingRow = () => {
+    setFormData((prev) => ({
+      ...prev,
+      roomSharingOptions: [...prev.roomSharingOptions, { label: "", price: "" }],
+    }));
+  };
+
+  const removeRoomSharingRow = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      roomSharingOptions: prev.roomSharingOptions.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateRoomSharingRow = (index, field, value) => {
+    setFormData((prev) => {
+      const next = [...prev.roomSharingOptions];
+      next[index] = { ...next[index], [field]: value };
+      return { ...prev, roomSharingOptions: next };
     });
   };
 
@@ -195,10 +250,11 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
 
       const savedPackage = await res.json();
       onSave(savedPackage);
+      toast.success(editingPackage ? "Package updated" : "Package created");
       onClose();
     } catch (error) {
       console.error("Save error:", error);
-      alert(error.message);
+      toast.error(error.message || "Could not save package");
     } finally {
       setIsLoading(false);
     }
@@ -208,7 +264,7 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
 
   const tabs = [
     { id: "basic", label: "Basic Info", icon: Info },
-    { id: "pricing", label: "Pricing & Media", icon: DollarSign },
+    { id: "pricing", label: "Pricing & Offers", icon: DollarSign },
     { id: "itinerary", label: "Itinerary", icon: Clock },
     { id: "inclusions", label: "Inclusions", icon: Check },
     { id: "terms", label: "Terms", icon: FileText },
@@ -289,6 +345,19 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 ml-1">Package Type</label>
+                  <div className="relative">
+                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input 
+                      name="packageType"
+                      value={formData.packageType}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Hill Station, Spiritual"
+                      className="w-full pl-11 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500 outline-none transition-all font-medium text-slate-900"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 ml-1">Duration (Days)</label>
                   <div className="relative">
                     <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -333,17 +402,49 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Short Description</label>
-                <textarea 
-                  name="shortDescription"
-                  value={formData.shortDescription}
-                  onChange={handleInputChange}
-                  rows="2"
-                  placeholder="A catchy 1-2 sentence summary..."
-                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500 outline-none transition-all font-medium text-slate-900 resize-none"
-                />
+              <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-100 space-y-4">
+                <div className="flex items-center gap-2 text-amber-900">
+                  <Calendar className="h-4 w-4 shrink-0" />
+                  <span className="text-sm font-black uppercase tracking-wide">Upcoming / future trip</span>
+                </div>
+                <label className="flex items-center gap-3 cursor-pointer group w-fit">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      name="isUpcoming"
+                      checked={formData.isUpcoming}
+                      onChange={handleInputChange}
+                      className="peer sr-only"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                  </div>
+                  <span className="text-sm font-bold text-slate-800">Show under Upcoming on website</span>
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-amber-900/80 ml-1">Upcoming label (optional)</label>
+                    <input
+                      name="upcomingLabel"
+                      value={formData.upcomingLabel}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Departures from Nov 2026"
+                      className="w-full px-4 py-3 bg-white border border-amber-100 rounded-xl text-sm font-medium text-slate-900"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-amber-900/80 ml-1">Expected launch (optional)</label>
+                    <input
+                      type="datetime-local"
+                      name="expectedLaunchAt"
+                      value={formData.expectedLaunchAt}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-white border border-amber-100 rounded-xl text-sm font-medium text-slate-900"
+                    />
+                  </div>
+                </div>
               </div>
+
+
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 ml-1">Full Description</label>
@@ -393,6 +494,108 @@ export default function PackageModal({ isOpen, onClose, onSave, editingPackage }
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-orange-50/50 border border-orange-100 space-y-4">
+                <div className="flex items-center gap-2 text-orange-900">
+                  <Tag className="h-4 w-4 shrink-0" />
+                  <span className="text-sm font-black uppercase tracking-wide">Promotional offer</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-600 ml-1">Offer title (optional)</label>
+                    <input
+                      name="offerTitle"
+                      value={formData.offerTitle}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Early bird — 10% off"
+                      className="w-full px-4 py-3 bg-white border border-orange-100 rounded-xl text-sm font-medium text-slate-900"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-600 ml-1">Offer description (optional)</label>
+                    <textarea
+                      name="offerDescription"
+                      value={formData.offerDescription}
+                      onChange={handleInputChange}
+                      rows={2}
+                      placeholder="Short details shown on package cards and itinerary"
+                      className="w-full px-4 py-3 bg-white border border-orange-100 rounded-xl text-sm font-medium text-slate-900 resize-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-600 ml-1">Offer valid until (optional)</label>
+                    <input
+                      type="datetime-local"
+                      name="offerValidUntil"
+                      value={formData.offerValidUntil}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-white border border-orange-100 rounded-xl text-sm font-medium text-slate-900"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-slate-800">
+                    <Users className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm font-black">Room sharing prices (optional)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addRoomSharingRow}
+                    className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add option
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 -mt-1">
+                  Example: Double sharing ₹6300, Triple ₹6000. Keep &quot;Current price&quot; as your headline list price
+                  (e.g. lowest tier).
+                </p>
+                {formData.roomSharingOptions.length === 0 ? (
+                  <p className="text-sm text-slate-400 font-medium py-4 text-center border border-dashed border-slate-200 rounded-2xl">
+                    No room-sharing rows. Add rows to show a breakdown on the public itinerary.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {formData.roomSharingOptions.map((row, idx) => (
+                      <div key={idx} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
+                        <div className="flex-1 space-y-1">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase">Label</label>
+                          <input
+                            placeholder="e.g. Double sharing"
+                            value={row.label}
+                            onChange={(e) => updateRoomSharingRow(idx, "label", e.target.value)}
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium"
+                          />
+                        </div>
+                        <div className="w-full sm:w-36 space-y-1">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase">Price (₹)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="6300"
+                            value={row.price}
+                            onChange={(e) => updateRoomSharingRow(idx, "price", e.target.value)}
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-medium"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeRoomSharingRow(idx)}
+                          className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl shrink-0"
+                          aria-label="Remove row"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">

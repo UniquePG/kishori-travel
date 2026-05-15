@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { eq, isNull, desc, and } from "drizzle-orm";
+import { eq, isNull, desc } from "drizzle-orm";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { notifyMemberOfLeadAssignment } from "@/lib/mail/notifyLeadAssignment";
+import { syncBookingFromWonLead } from "@/lib/bookings/syncBookingFromWonLead";
 
 async function checkAdmin() {
   const cookieStore = await cookies();
@@ -25,6 +27,8 @@ export async function GET() {
           columns: {
             id: true,
             name: true,
+            email: true,
+            phone: true,
           },
         },
       },
@@ -63,17 +67,27 @@ export async function POST(request) {
       where: eq(schema.leads.id, lead.id),
       with: {
         assignee: {
-          columns: { id: true, name: true }
-        }
-      }
+          columns: { id: true, name: true, email: true, phone: true },
+        },
+      },
     });
 
     if (body.assignee_to) {
+      const assigneeId = parseInt(body.assignee_to, 10);
       await db.insert(schema.leadAssignments).values({
         leadId: lead.id,
-        assignedTo: parseInt(body.assignee_to),
+        assignedTo: assigneeId,
         note: "Initial assignment on creation",
       });
+      await notifyMemberOfLeadAssignment({
+        leadId: lead.id,
+        assigneeUserId: assigneeId,
+        kind: "new",
+      });
+    }
+
+    if (leadWithAssignee?.status === "won") {
+      await syncBookingFromWonLead(lead.id);
     }
 
     return NextResponse.json(leadWithAssignee);
@@ -123,20 +137,27 @@ export async function PUT(request) {
       where: eq(schema.leads.id, leadId),
       with: {
         assignee: {
-          columns: { id: true, name: true }
-        }
-      }
+          columns: { id: true, name: true, email: true, phone: true },
+        },
+      },
     });
 
     console.log("newAssigneeId: ", newAssigneeId)
 
-    // Track assignment change
-    if (newAssigneeId !== oldLead.assignedTo) {
+    // Track assignment change (assigned_to is NOT NULL on lead_assignments — skip row when unassigning)
+    if (newAssigneeId && newAssigneeId !== oldLead.assignedTo) {
       await db.insert(schema.leadAssignments).values({
         leadId: leadId,
         assignedFrom: oldLead.assignedTo,
         assignedTo: newAssigneeId,
         note: "Lead re-assigned by admin",
+      });
+      const kind = oldLead.assignedTo ? "reassigned" : "new";
+      void notifyMemberOfLeadAssignment({
+        leadId,
+        assigneeUserId: newAssigneeId,
+        kind,
+        previousAssigneeUserId: oldLead.assignedTo ?? undefined,
       });
     }
 
@@ -149,6 +170,10 @@ export async function PUT(request) {
         changedBy: parseInt(admin.id),
         note: "Status updated by admin",
       });
+    }
+
+    if (data.status === "won" && oldLead.status !== "won") {
+      await syncBookingFromWonLead(leadId);
     }
 
     return NextResponse.json(updatedLead);

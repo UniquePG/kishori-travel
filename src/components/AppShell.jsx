@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import LoadingScreen from "./LoadingScreen";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import AppToaster from "./ui/AppToaster";
 
 export default function AppShell({ children }) {
   const [loading, setLoading] = useState(true);
@@ -19,7 +20,12 @@ export default function AppShell({ children }) {
   }, []);
 
   if (loading) {
-    return <LoadingScreen />;
+    return (
+      <>
+        <LoadingScreen />
+        <AppToaster />
+      </>
+    );
   }
 
   const isExcludedRoute = pathname === "/" || pathname.startsWith("/admin") || pathname.startsWith("/member") || pathname.startsWith("/login");
@@ -29,6 +35,7 @@ export default function AppShell({ children }) {
       {!isExcludedRoute && <Navbar />}
       <main>{children}</main>
       {!isExcludedRoute && <Footer />}
+      <AppToaster />
     </div>
   );
 

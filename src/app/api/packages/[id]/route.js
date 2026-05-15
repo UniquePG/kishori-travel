@@ -14,11 +14,51 @@ async function checkAdmin() {
   return payload && payload.role === "admin" ? payload : null;
 }
 
+function parseOptionalDate(value) {
+  if (value == null || value === "") return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function normalizeRoomSharingOptions(body) {
+  const rows = body.roomSharingOptions;
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((r, index) => {
+      const label = (r?.label ?? "").toString().trim();
+      const n = Number(r?.price);
+      if (!label || !Number.isFinite(n) || n < 0) return null;
+      return { label, price: n.toString(), sortOrder: index };
+    })
+    .filter(Boolean);
+}
+
+const packageRelationsQuery = {
+  inclusions: true,
+  itinerary: true,
+  images: true,
+  terms: true,
+  roomSharingOptions: {
+    orderBy: (row, { asc }) => [asc(row.sortOrder)],
+  },
+};
+
+async function fetchPackageWithRelations(packageId) {
+  return db.query.packages.findFirst({
+    where: eq(schema.packages.id, packageId),
+    with: packageRelationsQuery,
+  });
+}
+
 export async function PUT(request, { params }) {
   const admin = await checkAdmin();
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+  const packageId = parseInt(String(id), 10);
+  if (!Number.isFinite(packageId)) {
+    return NextResponse.json({ error: "Invalid package id" }, { status: 400 });
+  }
 
   try {
     const contentType = request.headers.get("content-type") || "";
@@ -29,7 +69,7 @@ export async function PUT(request, { params }) {
       const formData = await request.formData();
       const dataStr = formData.get("data");
       body = JSON.parse(dataStr);
-      
+
       const file = formData.get("thumbnail");
       if (file && typeof file !== "string") {
         const bytes = await file.arrayBuffer();
@@ -44,33 +84,41 @@ export async function PUT(request, { params }) {
       thumbnail = body.thumbnail;
     }
 
-    const result = await db.transaction(async (tx) => {
-      const [updatedPackage] = await tx.update(schema.packages)
+    const roomRows = normalizeRoomSharingOptions(body);
+
+    await db.transaction(async (tx) => {
+      const [updatedPackage] = await tx
+        .update(schema.packages)
         .set({
           title: body.title,
           slug: body.slug,
-          shortDescription: body.shortDescription,
+          packageType: body.packageType,
           description: body.description,
           location: body.location,
-          durationDays: parseInt(body.durationDays),
+          durationDays: parseInt(body.durationDays, 10),
           currentPrice: body.currentPrice.toString(),
           oldPrice: body.oldPrice ? body.oldPrice.toString() : null,
-          thumbnail: thumbnail,
+          thumbnail,
           isFeatured: body.isFeatured,
           isActive: body.isActive,
-          updatedAt: new Date()
+          isUpcoming: body.isUpcoming ?? false,
+          upcomingLabel: body.upcomingLabel?.trim() || null,
+          expectedLaunchAt: parseOptionalDate(body.expectedLaunchAt),
+          offerTitle: body.offerTitle?.trim() || null,
+          offerDescription: body.offerDescription?.trim() || null,
+          offerValidUntil: parseOptionalDate(body.offerValidUntil),
+          updatedAt: new Date(),
         })
-        .where(eq(schema.packages.id, id))
+        .where(eq(schema.packages.id, packageId))
         .returning();
-      
+
       if (!updatedPackage) throw new Error("Package not found");
 
-      // Sync inclusions: Delete old and insert new
-      await tx.delete(schema.packageInclusions).where(eq(schema.packageInclusions.packageId, id));
+      await tx.delete(schema.packageInclusions).where(eq(schema.packageInclusions.packageId, packageId));
       if (body.inclusions && body.inclusions.length > 0) {
         await tx.insert(schema.packageInclusions).values(
           body.inclusions.map((inc, index) => ({
-            packageId: id,
+            packageId,
             type: inc.type,
             title: inc.title,
             sortOrder: index,
@@ -78,12 +126,11 @@ export async function PUT(request, { params }) {
         );
       }
 
-      // Sync itinerary: Delete old and insert new
-      await tx.delete(schema.packageItinerary).where(eq(schema.packageItinerary.packageId, id));
+      await tx.delete(schema.packageItinerary).where(eq(schema.packageItinerary.packageId, packageId));
       if (body.itinerary && body.itinerary.length > 0) {
         await tx.insert(schema.packageItinerary).values(
           body.itinerary.map((item) => ({
-            packageId: id,
+            packageId,
             dayNumber: item.dayNumber,
             title: item.title,
             description: item.description,
@@ -91,22 +138,34 @@ export async function PUT(request, { params }) {
         );
       }
 
-      // Sync terms
-      await tx.delete(schema.packageTerms).where(eq(schema.packageTerms.packageId, id));
+      await tx.delete(schema.packageTerms).where(eq(schema.packageTerms.packageId, packageId));
       if (body.terms && body.terms.length > 0) {
         await tx.insert(schema.packageTerms).values(
           body.terms.map((term, index) => ({
-            packageId: id,
+            packageId,
             content: term,
             sortOrder: index,
           }))
         );
       }
 
-      return updatedPackage;
+      await tx
+        .delete(schema.packageRoomSharingOptions)
+        .where(eq(schema.packageRoomSharingOptions.packageId, packageId));
+      if (roomRows.length > 0) {
+        await tx.insert(schema.packageRoomSharingOptions).values(
+          roomRows.map((row, index) => ({
+            packageId,
+            label: row.label,
+            price: row.price,
+            sortOrder: index,
+          }))
+        );
+      }
     });
 
-    return NextResponse.json(result);
+    const full = await fetchPackageWithRelations(packageId);
+    return NextResponse.json(full);
   } catch (error) {
     console.error("Package update error:", error);
     return NextResponse.json({ error: "Failed to update package: " + error.message }, { status: 500 });
@@ -118,13 +177,17 @@ export async function DELETE(request, { params }) {
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+  const packageId = parseInt(String(id), 10);
+  if (!Number.isFinite(packageId)) {
+    return NextResponse.json({ error: "Invalid package id" }, { status: 400 });
+  }
 
   try {
-    // Soft delete
-    await db.update(schema.packages)
+    await db
+      .update(schema.packages)
       .set({ deletedAt: new Date(), isActive: false })
-      .where(eq(schema.packages.id, id));
-    
+      .where(eq(schema.packages.id, packageId));
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Package delete error:", error);

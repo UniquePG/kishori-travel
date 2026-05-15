@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   Edit3,
   Trash2,
@@ -47,10 +48,16 @@ export default function AdminLeads() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/admin/leads");
-      const data = await res.json();
-      setLeads(data);
+      if (!res.ok) {
+        toast.error("Could not load leads");
+        setLeads([]);
+      } else {
+        const data = await res.json();
+        setLeads(data);
+      }
     } catch (error) {
       console.error("Failed to fetch leads", error);
+      toast.error("Could not load leads");
     } finally {
       setIsLoading(false);
     }
@@ -59,10 +66,16 @@ export default function AdminLeads() {
   const fetchMembers = async () => {
     try {
       const res = await fetch("/api/admin/members");
-      const data = await res.json();
-      setMembers(data);
+      if (!res.ok) {
+        toast.error("Could not load team members");
+        setMembers([]);
+      } else {
+        const data = await res.json();
+        setMembers(data);
+      }
     } catch (error) {
       console.error("Failed to fetch members", error);
+      toast.error("Could not load team members");
     }
   };
 
@@ -77,9 +90,12 @@ export default function AdminLeads() {
       const updated = await res.json();
       if (res.ok) {
         setLeads(leads.map((l) => (l.id === updated.id ? updated : l)));
+      } else {
+        toast.error(updated?.error || "Could not update lead");
       }
     } catch (error) {
       console.error("Failed to update lead field", error);
+      toast.error("Could not update lead");
     }
   };
 
@@ -109,9 +125,14 @@ export default function AdminLeads() {
         });
         if (res.ok) {
           setLeads(leads.filter((l) => l.id !== id));
+          toast.success("Lead deleted");
+        } else {
+          const err = await res.json().catch(() => ({}));
+          toast.error(err?.error || "Could not delete lead");
         }
       } catch (error) {
         console.error("Failed to delete lead", error);
+        toast.error("Could not delete lead");
       }
     }
   };

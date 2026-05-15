@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Trash2, Film, Image as ImageIcon, ExternalLink, Plus, X, Edit3 } from "lucide-react";
 
 export default function AdminGallery() {
@@ -27,10 +28,16 @@ export default function AdminGallery() {
   const fetchGallery = async () => {
     try {
       const res = await fetch("/api/gallery");
-      const data = await res.json();
-      setItems(data);
+      if (!res.ok) {
+        toast.error("Could not load gallery");
+        setItems([]);
+      } else {
+        const data = await res.json();
+        setItems(data);
+      }
     } catch (error) {
       console.error("Failed to fetch gallery", error);
+      toast.error("Could not load gallery");
     } finally {
       setIsLoading(false);
     }
@@ -42,11 +49,13 @@ export default function AdminGallery() {
         const res = await fetch(`/api/gallery/${id}`, { method: "DELETE" });
         if (res.ok) {
           setItems(items.filter((i) => i.id !== id));
+          toast.success("Media removed");
         } else {
-          alert("Failed to delete media");
+          toast.error("Could not delete media");
         }
       } catch (error) {
         console.error("Failed to delete media", error);
+        toast.error("Could not delete media");
       }
     }
   };
@@ -96,10 +105,12 @@ export default function AdminGallery() {
 
     if (isImage && fileSizeMB > 5) {
       setError("Image file size cannot exceed 5MB.");
+      toast.error("Image must be 5MB or smaller");
       return;
     }
     if (isVideo && fileSizeMB > 20) {
       setError("Video file size cannot exceed 20MB.");
+      toast.error("Video must be 20MB or smaller");
       return;
     }
 
@@ -138,15 +149,16 @@ export default function AdminGallery() {
         setItems([savedItem, ...items]);
       }
       handleCloseModal();
+      toast.success(editingItem ? "Media updated" : "Media added");
     } catch (error) {
       console.error("Error saving gallery item:", error);
       setError(error.message);
+      toast.error(error.message || "Could not save media");
     } finally {
       setIsLoading(false);
     }
   };
 
-   console.log("items ", items)
   const photoCount = items?.filter(i => i.mediaType !== "video").length;
   const videoCount = items?.filter(i => i.mediaType === "video").length;
   const filteredItems = mediaFilter === "all" ? items

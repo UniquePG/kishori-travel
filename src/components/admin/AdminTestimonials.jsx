@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Trash2, Star, User, Plus, X, Edit3, CheckCircle2, XCircle } from "lucide-react";
 import NewDataTable from "../common/NewDataTable";
 import { cn } from "@/lib/utils";
@@ -29,10 +30,16 @@ export default function AdminTestimonials() {
   const fetchTestimonials = async () => {
     try {
       const res = await fetch("/api/testimonials");
-      const data = await res.json();
-      setTestimonials(Array.isArray(data) ? data : []);
+      if (!res.ok) {
+        toast.error("Could not load testimonials");
+        setTestimonials([]);
+      } else {
+        const data = await res.json();
+        setTestimonials(Array.isArray(data) ? data : []);
+      }
     } catch (error) {
       console.error("Failed to fetch testimonials", error);
+      toast.error("Could not load testimonials");
     } finally {
       setIsLoading(false);
     }
@@ -51,19 +58,30 @@ export default function AdminTestimonials() {
       const updated = await res.json();
       if (res.ok) {
         setTestimonials(testimonials.map(t => t.id === updated.id ? updated : t));
+        toast.success("Status updated");
+      } else {
+        toast.error(updated?.error || "Could not update status");
       }
     } catch (error) {
       console.error("Failed to toggle status", error);
+      toast.error("Could not update status");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Delete this review?")) {
       try {
-        await fetch(`/api/testimonials/${id}`, { method: "DELETE" });
-        setTestimonials(testimonials.filter((t) => t.id !== id));
+        const res = await fetch(`/api/testimonials/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setTestimonials(testimonials.filter((t) => t.id !== id));
+          toast.success("Testimonial removed");
+        } else {
+          const err = await res.json().catch(() => ({}));
+          toast.error(err?.error || "Could not delete testimonial");
+        }
       } catch (error) {
         console.error("Failed to delete testimonial", error);
+        toast.error("Could not delete testimonial");
       }
     }
   };
@@ -111,7 +129,12 @@ export default function AdminTestimonials() {
           body: JSON.stringify(payload),
         });
         const updatedItem = await res.json();
+        if (!res.ok) {
+          toast.error(updatedItem?.error || "Could not save testimonial");
+          return;
+        }
         setTestimonials(testimonials.map((t) => (t.id === updatedItem.id ? updatedItem : t)));
+        toast.success("Testimonial updated");
       } else {
         const res = await fetch("/api/testimonials", {
           method: "POST",
@@ -119,11 +142,17 @@ export default function AdminTestimonials() {
           body: JSON.stringify(payload),
         });
         const newItem = await res.json();
+        if (!res.ok) {
+          toast.error(newItem?.error || "Could not save testimonial");
+          return;
+        }
         setTestimonials([...testimonials, newItem]);
+        toast.success("Testimonial added");
       }
       handleCloseModal();
     } catch (error) {
       console.error("Error saving testimonial:", error);
+      toast.error("Could not save testimonial");
     }
   };
 

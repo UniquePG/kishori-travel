@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { X, User, Calendar, MapPin, Tag, TrendingUp, Clock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,11 +19,17 @@ export default function MemberLeadsModal({ member, onClose }) {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/admin/members/${member.id}/leads`);
-      const data = await res.json();
-      setLeads(Array.isArray(data) ? data : []);
+      if (!res.ok) {
+        toast.error("Could not load assigned leads");
+        setLeads([]);
+      } else {
+        const data = await res.json();
+        setLeads(Array.isArray(data) ? data : []);
+      }
 
     } catch (error) {
       console.error("Failed to fetch leads", error);
+      toast.error("Could not load assigned leads");
     } finally {
       setIsLoading(false);
     }
