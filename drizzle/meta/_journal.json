@@ -64,6 +64,13 @@
       "when": 1778764567976,
       "tag": "0008_package_upcoming_offers_sharing",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1778991775892,
+      "tag": "0009_new_yellow_claw",
+      "breakpoints": true
     }
   ]
 }
