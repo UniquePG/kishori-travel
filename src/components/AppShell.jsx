@@ -6,6 +6,7 @@ import LoadingScreen from "./LoadingScreen";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import AppToaster from "./ui/AppToaster";
+import HomeFooter from "./Home/HomeFooter";
 
 export default function AppShell({ children }) {
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ export default function AppShell({ children }) {
     <div className={`min-h-screen ${isExcludedRoute ? "" : "bg-[#fdfaf6] selection:bg-orange-200"}`}>
       {!isExcludedRoute && <Navbar />}
       <main>{children}</main>
-      {!isExcludedRoute && <Footer />}
+      {!isExcludedRoute && <HomeFooter />}
       <AppToaster />
     </div>
   );

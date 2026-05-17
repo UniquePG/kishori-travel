@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import ItineraryModal from "@/components/modals/ItineraryModal";
-import HomeFooter from "@/components/Home/HomeFooter";
 import HomeSearchBar from "@/components/Home/HomeSearchBar";
 import PackageListingCard from "@/components/packages/PackageListingCard";
 
@@ -113,8 +112,6 @@ export default function PackagesClientPage({ packages = [] }) {
           </div>
         </div>
       </section>
-
-      <HomeFooter />
 
       <ItineraryModal selectedPackage={selectedPackage} isOpen={!!selectedPackage} onClose={closeItinerary} />
     </div>
