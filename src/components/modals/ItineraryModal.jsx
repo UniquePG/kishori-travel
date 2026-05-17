@@ -70,6 +70,19 @@ export default function ItineraryModal({ selectedPackage, isOpen, onClose }) {
 
         <div className="itin-divider"></div>
 
+        {selectedPackage.description && (
+          <>
+            <div className="px-5 py-4">
+              <div className="inc-exc-label inc mb-2">
+                ✦ Overview
+              </div>
+              <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap font-medium">
+                {selectedPackage.description}
+              </div>
+            </div>
+            <div className="itin-divider"></div>
+          </>
+        )}
         {sharing.length > 0 && (
           <>
             <div className="px-5 py-4">
