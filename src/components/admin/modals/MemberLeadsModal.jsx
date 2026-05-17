@@ -53,8 +53,8 @@ export default function MemberLeadsModal({ member, onClose }) {
 
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-2 sm:p-4">
-      <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300 border border-white/20">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-60 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white rounded-2xl sm:rounded-[2.5rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300 border border-white/20">
         {/* Header */}
         <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-4">
@@ -62,8 +62,8 @@ export default function MemberLeadsModal({ member, onClose }) {
               <User className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-serif text-slate-900">{member.name}'s Assigned Leads</h2>
-              <p className="text-slate-500 text-xs sm:text-sm font-medium">Tracking {leads.length} active opportunities</p>
+              <h2 className="text-xl  sm:text-2xl font-serif text-slate-900">{member.name}'s Assigned Leads</h2>
+              <p className="text-slate-500 text-xs sm:text-sm font-semibold">Tracking {leads.length} active opportunities</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
@@ -83,7 +83,7 @@ export default function MemberLeadsModal({ member, onClose }) {
               <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-2">
                 <AlertCircle className="h-8 w-8" />
               </div>
-              <p className="text-slate-900 font-bold text-lg">No Leads Assigned</p>
+              <p className="text-slate-900 font-semibold text-lg">No Leads Assigned</p>
               <p className="text-slate-500 text-sm max-w-xs">This team member currently has no leads assigned to them.</p>
             </div>
           ) : (
@@ -91,28 +91,28 @@ export default function MemberLeadsModal({ member, onClose }) {
               {/* Summary Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Assigned</p>
-                  <p className="text-2xl font-bold text-slate-900">{leads.length}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-1">Total Assigned</p>
+                  <p className="text-2xl font-semibold text-slate-900">{leads.length}</p>
                 </div>
                 <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/60 mb-1">Won/Closed</p>
-                  <p className="text-2xl font-bold text-emerald-600">{statusStats.won || 0}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-600/60 mb-1">Won/Closed</p>
+                  <p className="text-2xl font-semibold text-emerald-600">{statusStats.won || 0}</p>
                 </div>
                 <div className="bg-orange-50 rounded-2xl p-4 border border-orange-100">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-orange-600/60 mb-1">In Progress</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-600/60 mb-1">In Progress</p>
                   <p className="text-2xl font-bold text-orange-600">
                     {leads.length - (statusStats.won || 0) - (statusStats.lost || 0) - (statusStats.dropped || 0)}
                   </p>
                 </div>
                 <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600/60 mb-1">New Leads</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-600/60 mb-1">New Leads</p>
                   <p className="text-2xl font-bold text-indigo-600">{statusStats.new || 0}</p>
                 </div>
               </div>
 
               {/* Leads List */}
               <div className="space-y-4">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-orange-500" />
                   Lead Breakdown & Progress
                 </h3>
@@ -126,7 +126,7 @@ export default function MemberLeadsModal({ member, onClose }) {
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="space-y-3 flex-1">
                           <div className="flex items-center gap-3">
-                            <h4 className="font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{lead.fullName}</h4>
+                            <h4 className="font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">{lead.fullName}</h4>
                             <span className={cn(
                               "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
                               statusColors[lead.status] || "bg-slate-50 text-slate-600 border-slate-100"
@@ -154,7 +154,7 @@ export default function MemberLeadsModal({ member, onClose }) {
                         <div className="flex items-center justify-between md:justify-end gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-slate-50">
                            <div className="text-right">
                               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Budget</p>
-                              <p className="font-bold text-slate-900">₹{parseFloat(lead.budget || 0).toLocaleString()}</p>
+                              <p className="font-semibold text-slate-900">₹{parseFloat(lead.budget || 0).toLocaleString()}</p>
                            </div>
                            <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 px-3 py-1.5 rounded-xl">
                               <Clock className="h-3.5 w-3.5" />

@@ -13,6 +13,8 @@ const INITIAL_FORM_STATE = {
   numberOfPeople: "",
   budget: "",
   message: "",
+  days: "",
+  night: "",
   source: "phone",
   status: "new",
   assignee_to: "",
@@ -234,6 +236,34 @@ function CreateLeadModal({ isOpen, onClose, onSuccess, editingLead = null }) {
                 onChange={(e) =>
                   setFormData({ ...formData, numberOfPeople: e.target.value })
                 }
+                className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all font-medium text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                Days
+              </label>
+              <input
+                type="number"
+                value={formData.days || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, days: e.target.value })
+                }
+                placeholder="No. of days"
+                className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all font-medium text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                Nights
+              </label>
+              <input
+                type="number"
+                value={formData.night || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, night: e.target.value })
+                }
+                placeholder="No. of nights"
                 className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all font-medium text-sm"
               />
             </div>

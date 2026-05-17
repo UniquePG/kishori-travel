@@ -25,7 +25,18 @@ export async function GET(req) {
       orderBy: (leads, { desc }) => [desc(leads.createdAt)],
       limit: 5,
       with: {
-        assignee: true
+        assignee: true,
+        destinationInterest: {
+          id: true,
+          title: true,
+          slug: true,
+          isFeatured: true,
+          isUpcoming: true,
+          currentPrice: true,
+          packageType: true,
+          location: true
+        }
+
       }
     });
 

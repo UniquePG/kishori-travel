@@ -16,15 +16,6 @@ import HomeContact from "../components/Home/HomeContact";
 import HomeFooter from "../components/Home/HomeFooter";
 
 export default function Home({ packages = [], gallery = [], testimonials = [], faqs = [] }) {
-  console.log("Allpackages ", packages)
-  const { popularPackages, upcomingPackages } = useMemo(() => {
-    const list = Array.isArray(packages) ? packages : [];
-    return {
-      popularPackages: list.filter((p) => !p?.isUpcoming).slice(0, 6),
-      upcomingPackages: list.filter((p) => p?.isUpcoming),
-    };
-  }, [packages]);
-
   useEffect(() => {
     const observerOptions = {
       threshold: 0.12,
@@ -53,7 +44,7 @@ export default function Home({ packages = [], gallery = [], testimonials = [], f
       <HomeNavbar />
       <HomeHero />
       <HomeSearchBar />
-      <HomePackages popularPackages={popularPackages} upcomingPackages={upcomingPackages} />
+      <HomePackages packages={packages} />
       <HomeWhyUs />
       <HomeGallery images={images} />
       <HomeVideos videos={videos} />

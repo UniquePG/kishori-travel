@@ -24,6 +24,21 @@ export async function GET() {
         isNull(schema.leads.deletedAt)
       ),
       orderBy: [desc(schema.leads.updatedAt)],
+      with: {
+        assignee: true,
+        destinationInterest: {
+          id: true,
+          title: true,
+          slug: true,
+          isFeatured: true,
+          isUpcoming: true,
+          currentPrice: true,
+          packageType: true,
+          location: true
+        }
+
+      }
+
     });
     return NextResponse.json(leads);
   } catch (error) {

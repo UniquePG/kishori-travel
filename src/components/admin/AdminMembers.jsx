@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
-  Edit3, Trash2, Plus, X, User, Phone, Mail, 
-  Shield, ShieldCheck, UserCog, Clock, CheckCircle2, XCircle, TrendingUp 
+  Edit3, Trash2, Plus, X, User, Phone, Mail, Clock, CheckCircle2, XCircle, TrendingUp 
 } from "lucide-react";
-import DataTable from "@/components/common/DataTable";
 import { cn } from "@/lib/utils";
 import MemberLeadsModal from "./modals/MemberLeadsModal";
 import NewDataTable from "../common/NewDataTable";
@@ -150,8 +148,8 @@ export default function AdminMembers() {
             <User className="h-5 w-5" />
           </div>
           <div>
-            <p className="font-bold text-slate-900">{row.name}</p>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-orange-500 mt-0.5">{row.role}</p>
+            <p className="font-semibold text-slate-900">{row.name}</p>
+            <p className="text-[10px] font-semibold  tracking-widest text-orange-500 mt-0.5">{row.role}</p>
           </div>
         </div>
       )
@@ -183,7 +181,7 @@ export default function AdminMembers() {
           className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-orange-50 hover:border-orange-200 transition-all"
         >
           <TrendingUp className="h-3.5 w-3.5 text-slate-400 group-hover:text-orange-500" />
-          <span className="text-sm font-bold text-slate-700 group-hover:text-orange-600">{row.assignedLeadsCount || 0}</span>
+          <span className="text-sm font-semibold text-slate-700 group-hover:text-orange-600">{row.assignedLeadsCount || 0}</span>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Leads</span>
         </button>
       )
@@ -217,7 +215,7 @@ export default function AdminMembers() {
       label: "Actions",
       className: "text-right",
       render: (row) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-start gap-2">
           <button 
             onClick={() => setViewingLeadsMember(row)}
             className="p-2 rounded-lg bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all"

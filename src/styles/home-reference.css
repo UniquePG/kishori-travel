@@ -399,7 +399,7 @@
 }
 
 /* ── SECTIONS ── */
-section {
+main section {
   padding: 5rem 1.5rem;
 }
 
@@ -1608,41 +1608,85 @@ section {
 }
 
 /* ── FLOATING BUTTONS ── */
+/* ───────────────── FLOATING ACTION BUTTONS ───────────────── */
+
 .fab-group {
   position: fixed;
-  bottom: 2rem;
   right: 1.5rem;
+  bottom: 2rem;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  z-index: 800;
   align-items: flex-end;
+  z-index: 999;
 }
 
+/* Base button */
 .fab {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  border-radius: 50px;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
   text-decoration: none;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 0.9rem 1.8rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
   white-space: nowrap;
-  border: none;
-  cursor: pointer;
-  font-family: "DM Sans", sans-serif;
-  color: #ffffff !important;
+  color: #fff !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  transition: width 0.35s ease, box-shadow 0.35s ease;
+  position: relative;
+  padding: 0;
 }
 
+/* Expanded state */
 .fab:hover {
-  transform: translateX(-4px);
-  box-shadow: 0 8px 24px var(--shadow);
+  width: 190px;
+  justify-content: flex-start;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
 
+/* Different widths */
+.fab-call:hover {
+  width: 165px;
+}
+
+/* Icon wrapper */
+.fab-icon {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Label */
+.fab-label {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: opacity 0.25s ease, max-width 0.25s ease;
+  font-family: "DM Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  margin-left: 0;
+}
+
+/* Show label */
+.fab:hover .fab-label {
+  opacity: 1;
+  max-width: 120px;
+  margin-left: 8px;
+}
+
+/* Background colors */
 .fab-wa {
   background: #72d377;
 }
@@ -1652,12 +1696,31 @@ section {
 }
 
 .fab-ig {
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  background: linear-gradient(
+    45deg,
+    #f09433 0%,
+    #e6683c 25%,
+    #dc2743 50%,
+    #cc2366 75%,
+    #bc1888 100%
+  );
 }
 
-.fab-icon {
-  font-size: 1.25rem;
+/* Mobile: disable expand */
+@media (max-width: 768px) {
+  .fab:hover {
+    width: 56px;
+    justify-content: center;
+  }
+
+  .fab:hover .fab-label {
+    opacity: 0;
+    max-width: 0;
+    margin-left: 0;
+  }
 }
+
+/* Specific colors are already defined below */
 
 /* ── BACK TO TOP ── */
 #btt {
@@ -1752,7 +1815,7 @@ section {
     text-transform: lowercase;
   }
   .fab-icon {
-    margin: 0;
+    font-size: 1.2rem;
   }
   .video-card {
     flex: 0 0 100%;

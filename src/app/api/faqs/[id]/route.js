@@ -20,16 +20,16 @@ export async function PUT(request, { params }) {
   const { id } = await params;
 
   try {
-    const { question, answer, sort_order, is_active } = await request.json();
+    const { question, answer, sortOrder, isActive } = await request.json();
     const [faq] = await db.update(schema.faqs)
       .set({
         question,
         answer,
-        sortOrder: Number(sort_order),
-        isActive: is_active,
+        sortOrder: Number(sortOrder),
+        isActive: Boolean(isActive),
         updatedAt: new Date()
       })
-      .where(eq(schema.faqs.id, id))
+      .where(eq(schema.faqs.id, Number(id)))
       .returning();
     return NextResponse.json(faq);
   } catch (error) {

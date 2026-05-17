@@ -63,7 +63,7 @@ export default function HomePackages({ packages = [], popularPackages, upcomingP
         aria-labelledby="home-upcoming-heading"
       >
         <div className="container">
-          <div className="reveal">
+          <div className="reveal in">
             <h2
               id="home-upcoming-heading"
               className="font-['Cormorant_Garamond',serif] text-3xl md:text-4xl text-slate-900 mb-2"

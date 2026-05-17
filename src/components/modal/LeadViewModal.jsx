@@ -102,12 +102,21 @@ export default function LeadViewModal({ isOpen, onClose, lead }) {
                 Trip Intent
               </h3>
               <div className="space-y-1">
-                <InfoRow label="Destination" value={lead.package?.title || lead.destinationInterest || "General"} />
+                <InfoRow label="Destination" value={lead.package?.title || lead.destinationInterest?.title || "General"} />
                 <InfoRow icon={Calendar} label="Travel Date" value={lead.travelDate ? new Date(lead.travelDate).toLocaleDateString() : "Flexible"} />
                 <div className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
                   <div className="flex items-center gap-3">
+                    <Clock className="h-4 w-4 text-slate-400" />
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-tight">Duration</span>
+                  </div>
+                  <span className="text-sm font-semibold text-slate-900">
+                    {lead.days || "—"} Days / {lead.night || "—"} Nights
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
+                  <div className="flex items-center gap-3">
                     <Users className="h-4 w-4 text-slate-400" />
-                    <span className="text-xs font-medium text-slate-500 uppercase tracking-tight">Pax / Budget</span>
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-tight">Peoples / Budget</span>
                   </div>
                   <span className="text-sm font-semibold text-slate-900">
                     {lead.numberOfPeople || "—"} / {lead.budget ? `₹${new Intl.NumberFormat('en-IN').format(lead.budget)}` : "—"}

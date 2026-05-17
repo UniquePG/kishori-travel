@@ -18,13 +18,13 @@ import {
 } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 
-const BOOKING_STATUS = [
+export const BOOKING_STATUS = [
   { value: "pending", label: "Pending" },
   { value: "confirmed", label: "Confirmed" },
   { value: "cancelled", label: "Cancelled" },
 ];
 
-const PAYMENT_STATUS = [
+export const PAYMENT_STATUS = [
   { value: "pending", label: "Pending" },
   { value: "partial", label: "Partial" },
   { value: "paid", label: "Paid" },
@@ -99,7 +99,7 @@ export default function BookingDetailModal({ booking, onClose, onUpdated }) {
       >
         <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-start justify-between gap-4 z-10">
           <div>
-            <h2 className="text-xl font-black text-slate-900">Booking #{booking.id}</h2>
+            <h2 className="text-xl font-semibold text-slate-900">Booking #{booking.id}</h2>
             <p className="text-sm text-slate-500 mt-0.5">Created {fmtDate(booking.createdAt)}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -118,31 +118,31 @@ export default function BookingDetailModal({ booking, onClose, onUpdated }) {
           )}
 
           <section className="rounded-2xl border border-orange-100 bg-gradient-to-br from-orange-50 to-amber-50 p-5">
-            <div className="flex items-center gap-2 text-orange-800 font-black text-xs uppercase tracking-wider mb-3">
+            <div className="flex items-center gap-2 text-orange-800 font-bold text-xs uppercase tracking-wider mb-3">
               <Package className="h-4 w-4" />
               Package & travel
             </div>
-            <p className="text-lg font-black text-slate-900">{pkg?.title || "—"}</p>
+            <p className="text-lg font-semibold text-slate-900 capitalize">{pkg?.title || "—"}</p>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-slate-600">
                 <Calendar className="h-4 w-4 text-orange-500 shrink-0" />
                 <span>
-                  <span className="text-slate-400">Travel start:</span>{" "}
-                  <strong className="text-slate-900">{fmtDate(booking.travelStartDate)}</strong>
+                  <span className="text-slate-400 ">Travel start:</span>{" "}
+                  <strong className="text-slate-900 font-semibold">{fmtDate(booking.travelStartDate)}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2 text-slate-600">
                 <Users className="h-4 w-4 text-orange-500 shrink-0" />
                 <span>
                   <span className="text-slate-400">Travelers:</span>{" "}
-                  <strong className="text-slate-900">{booking.travelersCount}</strong>
+                  <strong className="text-slate-900 font-semibold">{booking.travelersCount}</strong>
                 </span>
               </div>
             </div>
           </section>
 
           <section>
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Customer (booking)</h3>
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Customer (booking)</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 { icon: User, label: "Name", value: booking.customerName },
@@ -158,7 +158,7 @@ export default function BookingDetailModal({ booking, onClose, onUpdated }) {
                   <Icon className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase">{label}</p>
-                    <p className="text-sm font-bold text-slate-900">{value}</p>
+                    <p className="text-sm font-semibold text-slate-900">{value}</p>
                   </div>
                 </div>
               ))}
@@ -167,23 +167,23 @@ export default function BookingDetailModal({ booking, onClose, onUpdated }) {
 
           {lead && (
             <section className="rounded-2xl border border-slate-100 bg-slate-50/80 p-5 space-y-4">
-              <div className="flex items-center gap-2 text-slate-800 font-black text-xs uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-slate-800 font-semibold text-xs uppercase tracking-wider">
                 <Target className="h-4 w-4 text-orange-500" />
-                Original lead #{lead.id}
+                lead #{lead.id}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">Lead status</p>
-                  <p className="font-bold text-slate-900 capitalize">{lead.status}</p>
+                  <p className="font-semibold text-slate-900 capitalize">{lead.status}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase">Source</p>
-                  <p className="font-bold text-slate-900 capitalize">{lead.source || "—"}</p>
+                  <p className="font-semibold text-slate-900 capitalize">{lead.source || "—"}</p>
                 </div>
                 {lead.destinationInterest && (
                   <div className="sm:col-span-2">
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Destination interest</p>
-                    <p className="font-bold text-slate-900">{lead.destinationInterest.title}</p>
+                    <p className="font-semibold text-slate-900">{lead.destinationInterest.title}</p>
                   </div>
                 )}
                 {lead.message && (
@@ -197,22 +197,22 @@ export default function BookingDetailModal({ booking, onClose, onUpdated }) {
               </div>
 
               <div className="border-t border-slate-200 pt-4">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">
+                <p className="text-[12px] font-semiblack text-slate-400  tracking-wider mb-3">
                   Assigned member (during lead stage)
                 </p>
                 {assignee ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <p>
                       <span className="text-slate-400">Name:</span>{" "}
-                      <strong className="text-slate-900">{assignee.name}</strong>
+                      <strong className="text-slate-900 font-semibold">{assignee.name}</strong>
                     </p>
                     <p>
                       <span className="text-slate-400">Email:</span>{" "}
-                      <strong className="text-slate-900">{assignee.email || "—"}</strong>
+                      <strong className="text-slate-900 font-semibold">{assignee.email || "—"}</strong>
                     </p>
                     <p className="sm:col-span-2">
                       <span className="text-slate-400">Phone:</span>{" "}
-                      <strong className="text-slate-900">{assignee.phone || "—"}</strong>
+                      <strong className="text-slate-900 font-semibold">{assignee.phone || "—"}</strong>
                     </p>
                   </div>
                 ) : (
@@ -224,7 +224,7 @@ export default function BookingDetailModal({ booking, onClose, onUpdated }) {
 
           {booking.notes && (
             <section>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Booking notes</h3>
+              <h3 className="text-xs font-semiblack text-slate-400 uppercase tracking-wider mb-2">Booking notes</h3>
               <p className="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 rounded-xl p-4 border border-slate-100">
                 {booking.notes}
               </p>
@@ -232,7 +232,7 @@ export default function BookingDetailModal({ booking, onClose, onUpdated }) {
           )}
 
           <section className="rounded-2xl border border-slate-200 p-5 space-y-4">
-            <div className="flex items-center gap-2 text-slate-900 font-black text-sm">
+            <div className="flex items-center gap-2 text-slate-900 font-semibold text-sm">
               <CreditCard className="h-4 w-4 text-orange-500" />
               Update status
             </div>
@@ -274,7 +274,7 @@ export default function BookingDetailModal({ booking, onClose, onUpdated }) {
               type="button"
               disabled={saving}
               onClick={handleSave}
-              className="w-full sm:w-auto px-8 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-black disabled:opacity-50 inline-flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-2"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin" />}
               Save changes

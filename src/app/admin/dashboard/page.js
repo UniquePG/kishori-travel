@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const [viewingLead, setViewingLead] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-    const handleOpenModal = (lead = null) => {
+  const handleOpenModal = (lead = null) => {
     setEditingLead(lead);
     setIsModalOpen(true);
   };
@@ -160,7 +160,7 @@ export default function DashboardPage() {
     return colors[status] || "bg-slate-100 text-slate-500";
   };
 
-  const columns = [
+  const recentLeadcolumns = [
     {
       key: "fullName",
       label: "Traveler",
@@ -175,7 +175,7 @@ export default function DashboardPage() {
         </div>
       ),
     },
-        {
+    {
       key: "contact",
       label: "Contact",
       render: (row) => (
@@ -227,17 +227,17 @@ export default function DashboardPage() {
       ),
     },
 
-        {
+    {
       key: "status",
       label: "Status",
       render: (row) => (
-      <select
+        <select
           value={row.status}
           onChange={(e) =>
             handleUpdateLeadField(row.id, "status", e.target.value)
           }
           className={cn(
-            "text-[10px] font-black uppercase tracking-widest rounded-lg px-3 py-1.5 border-none focus:ring-2 transition-all cursor-pointer",
+            "text-[10px] font-bold  uppercase tracking-widest rounded-lg px-3 py-1.5 border-none focus:ring-2 transition-all cursor-pointer",
             getStatusColor(row.status),
           )}
         >
@@ -255,7 +255,7 @@ export default function DashboardPage() {
       key: "created_at",
       label: "Date",
       render: (row) => (
-        <div className="text-xs text-slate-400 whitespace-nowrap">
+        <div className="text-xs text-slate-400 whitespace-nowrap font-semibold">
           {new Date(row.createdAt).toLocaleDateString()}
         </div>
       ),
@@ -302,7 +302,7 @@ export default function DashboardPage() {
     }
   };
 
-    const handleModalSuccess = (result) => {
+  const handleModalSuccess = (result) => {
     if (editingLead) {
       setData((prev) => ({ ...prev, recentLeads: prev.recentLeads.map((l) => (l.id === result.id ? result : l)) }));
     } else {
@@ -323,6 +323,59 @@ export default function DashboardPage() {
     "border-t-2 border-t-purple-500",
     "border-t-2 border-t-emerald-500"
   ];
+
+  const packagesColumns = [
+    {
+      key: "details",
+      label: "Package",
+      render: (pkg) => (
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-slate-100 overflow-hidden ring-1 ring-slate-200 shrink-0 shadow-sm">
+            <img
+              src={pkg.thumbnail || "https://placehold.co/100"}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold text-slate-900 truncate max-w-[150px]">{pkg.title}</div>
+            <div className="text-[10px] font-semibold text-[#e8611a] uppercase">{pkg.durationDays} Days</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "location",
+      label: "Location",
+      render: (pkg) => (
+        <div className="flex items-center gap-1 text-[12px] font-semibold text-slate-500">
+          <MapPin className="h-3 w-3 text-slate-400" />
+          {pkg.location}
+        </div>
+      ),
+    },
+    {
+      key: "price",
+      label: "Price",
+      render: (pkg) => (
+        <div className="font-semibold text-slate-900 text-xs">
+          {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(pkg.currentPrice)}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (pkg) => (
+        <span className={cn(
+          "px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider",
+          pkg.isActive ? "bg-green-50 text-green-600" : "bg-slate-50 text-slate-400"
+        )}>
+          {pkg.isActive ? "Active" : "Draft"}
+        </span>
+      ),
+    }
+  ]
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 px-1 sm:px-0">
@@ -386,7 +439,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => handleOpenModal()}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#e8611a] text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-[#e8611a]/20 hover:bg-[#e8611a]/90 hover:shadow-[#e8611a]/20 active:scale-[0.98] transition-all"
+            className="w-full sm:w-auto cursor-pointer inline-flex items-center justify-center gap-2 bg-[#e8611a] text-white px-6 py-3 rounded-2xl font-semibold text-sm shadow-xl shadow-[#e8611a]/20 hover:bg-[#e8611a]/90 hover:shadow-[#e8611a]/20 active:scale-[0.98] transition-all"
           >
             <Plus className="h-4 w-4" />
             Add Lead Manually
@@ -395,7 +448,7 @@ export default function DashboardPage() {
 
 
         <NewDataTable
-          columns={columns}
+          columns={recentLeadcolumns}
           rows={data?.recentLeads || []}
           isLoading={isLoading}
         />
@@ -416,7 +469,7 @@ export default function DashboardPage() {
 
           <Link
             href="/admin/packages"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#e8611a] text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-[#e8611a]/20 hover:bg-[#e8611a]/90 hover:shadow-[#e8611a]/20 active:scale-[0.98] transition-all"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#e8611a] text-white px-6 py-3 rounded-2xl font-semibold text-sm shadow-xl shadow-[#e8611a]/20 hover:bg-[#e8611a]/90 hover:shadow-[#e8611a]/20 active:scale-[0.98] transition-all"
           >
             Manage Packages
             <ArrowUpRight className="h-4 w-4" />
@@ -424,58 +477,7 @@ export default function DashboardPage() {
         </div>
 
         <NewDataTable
-          columns={[
-            {
-              key: "details",
-              label: "Package",
-              render: (pkg) => (
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 overflow-hidden ring-1 ring-slate-200 shrink-0 shadow-sm">
-                    <img 
-                      src={pkg.thumbnail || "https://placehold.co/100"} 
-                      alt="" 
-                      className="h-full w-full object-cover" 
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-slate-900 truncate max-w-[150px]">{pkg.title}</div>
-                    <div className="text-[10px] font-bold text-[#e8611a] uppercase">{pkg.durationDays} Days</div>
-                  </div>
-                </div>
-              ),
-            },
-            {
-              key: "location",
-              label: "Location",
-              render: (pkg) => (
-                <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500">
-                  <MapPin className="h-3 w-3 text-slate-400" />
-                  {pkg.location}
-                </div>
-              ),
-            },
-            {
-              key: "price",
-              label: "Price",
-              render: (pkg) => (
-                <div className="font-bold text-slate-900 text-xs">
-                  {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(pkg.currentPrice)}
-                </div>
-              ),
-            },
-            {
-              key: "status",
-              label: "Status",
-              render: (pkg) => (
-                <span className={cn(
-                  "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider",
-                  pkg.isActive ? "bg-green-50 text-green-600" : "bg-slate-50 text-slate-400"
-                )}>
-                  {pkg.isActive ? "Active" : "Draft"}
-                </span>
-              ),
-            }
-          ]}
+          columns={packagesColumns}
           rows={data?.recentPackages || []}
           isLoading={isLoading}
         />

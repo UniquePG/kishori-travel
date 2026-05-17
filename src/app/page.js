@@ -1,11 +1,9 @@
 import Home from "@/pages/Home";
 
-const BASE_URL =
-  process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 const getPackages = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/api/packages?activeOnly=1`, { next: { revalidate: 60 } });
+    const res = await fetch(`${BASE_URL}/api/packages?activeOnly=1`, { cache: "no-store" });
     const data = await res.json();
     return data || [];
   } catch (error) {
@@ -14,38 +12,38 @@ const getPackages = async () => {
   }
 };
 
-const getGalleryData = async ()=>{
+const getGalleryData = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/api/gallery`);
-    const data = await res.json();
-    return data || [];
+    const res = await fetch(`${BASE_URL}/api/gallery`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
   } catch (error) {
-    console.log("Error fetching gallery", error);
+    console.error("Home Gallery Fetch Error:", error);
     return [];
   }
-}
+};
 
-const getTestimonialsData = async ()=> {
+const getTestimonialsData = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/api/testimonials`);
-    const data = await res.json();
-    return data || [];
+    const res = await fetch(`${BASE_URL}/api/testimonials`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
   } catch (error) {
-    console.log("Error fetching testimonials", error);
+    console.error("Home Testimonials Fetch Error:", error);
     return [];
   }
-}
+};
 
-const getFaqsData = async ()=> {
+const getFaqsData = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/api/faqs`);
-    const data = await res.json();
-    return data;
+    const res = await fetch(`${BASE_URL}/api/faqs`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
   } catch (error) {
-    console.log("Error fetching FAQs", error);
+    console.error("Home FAQS Fetch Error:", error);
     return [];
   }
-}
+};
 
 export default async function Page() {
   const packages = await getPackages();

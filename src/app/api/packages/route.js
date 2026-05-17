@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { and, desc, eq, gte, ilike, isNull, lte } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, isNull, lte, or } from "drizzle-orm";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { uploadToCloudinary } from "@/lib/cloudinary";
@@ -75,7 +75,9 @@ export async function GET(request) {
     const conditions = [isNull(schema.packages.deletedAt)];
 
     if (activeOnly) {
-      conditions.push(eq(schema.packages.isActive, true));
+      conditions.push(
+        or(eq(schema.packages.isActive, true), eq(schema.packages.isUpcoming, true))
+      );
     }
 
     if (destination) {

@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import CreateLeadModal from "@/components/modal/CreateLeadModal";
 import LeadViewModal from "@/components/modal/LeadViewModal";
 import { getSourceIcon } from "@/lib/helpers";
+import NewDataTable from "../common/NewDataTable";
 
 export default function AdminLeads() {
   const [leads, setLeads] = useState([]);
@@ -176,11 +177,11 @@ export default function AdminLeads() {
       label: "Traveler Detail",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-sm shadow-sm border border-orange-100">
+          <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 font-semibold text-sm  border border-orange-100">
             {row?.fullName?.charAt(0)}
           </div>
           <div>
-            <p className="font-bold text-slate-900 text-sm sm:text-base">
+            <p className="font-semibold capitalize text-slate-900 text-sm sm:text-base">
               {row.fullName}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
@@ -198,12 +199,12 @@ export default function AdminLeads() {
       label: "Contact",
       render: (row) => (
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-slate-600">
+          <div className="flex items-center gap-2 text-[12px] text-slate-600">
             <Phone className="h-3 w-3 text-slate-400 shrink-0" />
             {row.phone}
           </div>
           {row.email && (
-            <div className="flex items-center gap-2 text-[11px] text-slate-400">
+            <div className="flex items-center gap-2 text-[12px] text-slate-400">
               <Mail className="h-3 w-3 text-slate-400 shrink-0" />
               {row.email}
             </div>
@@ -213,15 +214,23 @@ export default function AdminLeads() {
     },
     {
       key: "destination",
-      label: "Destination",
+      label: "Package Interested",
       render: (row) => (
         <div>
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
             <MapPin className="h-3.5 w-3.5 text-orange-500 shrink-0" />
-            {row.destinationInterest || "General"}
+            {row.destinationInterest?.title || "General"}
           </div>
-          <p className="text-[10px] text-slate-400 mt-0.5">
-            {row.numberOfPeople ? `${row.numberOfPeople} Pax` : "Inquiry"}
+        </div>
+      ),
+    },
+    {
+      key: "numberOfPeople",
+      label: "No. of People",
+      render: (row) => (
+        <div>
+          <p className="font-medium">
+            {row.numberOfPeople ? `${row.numberOfPeople}` : "-"}
           </p>
         </div>
       ),
@@ -286,7 +295,7 @@ export default function AdminLeads() {
     },
     {
       key: "actions",
-      label: "",
+      label: "Action",
       className: "text-right",
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
@@ -331,14 +340,16 @@ export default function AdminLeads() {
           Add Lead Manually
         </button>
       </div>
-
-      <DataTable
+    
+    <div className="bg-white border border-slate-100 p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm overflow-hidden">
+      <NewDataTable
         columns={columns}
-        data={filteredLeads}
+        rows={filteredLeads}
         isLoading={isLoading}
         searchPlaceholder="Search leads..."
         onSearch={setSearchQuery}
       />
+    </div>
 
       <CreateLeadModal
         isOpen={isModalOpen}

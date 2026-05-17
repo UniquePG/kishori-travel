@@ -13,10 +13,12 @@ import {
   RefreshCw,
   Eye,
   Package,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
 import NewDataTable from "@/components/common/NewDataTable";
 import { formatCurrency, cn } from "@/lib/utils";
-import BookingDetailModal from "@/components/admin/BookingDetailModal";
+import BookingDetailModal, { BOOKING_STATUS, PAYMENT_STATUS } from "@/components/admin/BookingDetailModal";
 
 function StatCard({ label, value, icon: Icon, color, sub }) {
   const colors = {
@@ -47,21 +49,38 @@ function fmtDate(value) {
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function statusBadge(status) {
+
+
+function StatusSelect({ value, options, onChange, loading }) {
   const cls = {
-    confirmed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-    pending: "bg-amber-50 text-amber-700 ring-amber-200",
-    cancelled: "bg-red-50 text-red-700 ring-red-200",
+    confirmed: "text-emerald-700 bg-emerald-50 border-emerald-100",
+    paid: "text-emerald-700 bg-emerald-50 border-emerald-100",
+    pending: "text-amber-700 bg-amber-50 border-amber-100",
+    cancelled: "text-red-700 bg-red-50 border-red-100",
+    partial: "text-blue-700 bg-blue-50 border-blue-100",
   };
+
   return (
-    <span
-      className={cn(
-        "inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wide ring-1",
-        cls[status] || cls.pending
-      )}
-    >
-      {status}
-    </span>
+    <div className="relative group min-w-[110px]">
+      <select
+        value={value}
+        disabled={loading}
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(
+          "appearance-none w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:opacity-50 cursor-pointer pr-7 transition-all hover:border-slate-300",
+          cls[value] || cls.pending
+        )}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value} className="bg-white text-slate-900 font-medium normal-case text-sm">
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-slate-600 transition-colors">
+        {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <ChevronDown className="h-3 w-3" />}
+      </div>
+    </div>
   );
 }
 
@@ -83,6 +102,25 @@ export default function AdminBookings() {
   const [packageId, setPackageId] = useState("");
   const [travelFrom, setTravelFrom] = useState("");
   const [travelTo, setTravelTo] = useState("");
+  const [updatingId, setUpdatingId] = useState(null);
+
+  const handleStatusUpdate = async (id, field, value) => {
+    setUpdatingId(`${id}-${field}`);
+    try {
+      const res = await fetch(`/api/admin/bookings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+      toast.success(`${field === "bookingStatus" ? "Booking" : "Payment"} status updated`);
+      void load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Update failed");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const buildQueryString = () => {
     const qs = new URLSearchParams();
@@ -133,6 +171,8 @@ export default function AdminBookings() {
     }
   }, [stats.bookedValue]);
 
+  console.log("roessss ", rows )
+
   const columns = useMemo(
     () => [
       {
@@ -146,7 +186,7 @@ export default function AdminBookings() {
         label: "Customer",
         render: (r) => (
           <div className="min-w-0">
-            <p className="font-bold text-slate-900 truncate max-w-[180px]">{r.customerName}</p>
+            <p className="font-medium text-slate-900">{r.customerName}</p>
             <p className="text-[11px] text-slate-400 truncate">{r.customerPhone || "—"}</p>
           </div>
         ),
@@ -167,23 +207,52 @@ export default function AdminBookings() {
       },
       {
         key: "travelersCount",
-        label: "Pax",
+        label: "No of People",
         width: "56px",
         render: (r) => <span className="text-sm font-bold text-slate-800">{r.travelersCount}</span>,
       },
       {
         key: "totalAmount",
         label: "Amount",
-        render: (r) => <span className="text-sm font-black text-slate-900">{formatCurrency(r.totalAmount)}</span>,
+        render: (r) => <span className="text-sm font-medium text-slate-900">{formatCurrency(r.totalAmount)}</span>,
+      },
+      {
+        key: "assignedTo",
+        label: "Assigned To",
+        render: (r) => {
+          const assignee = r.lead?.assignee
+          return (
+            <span className="text-sm font-medium text-slate-900">{assignee?.name}</span>
+          )
+        } 
       },
       {
         key: "bookingStatus",
-        label: "Status",
-        render: (r) => statusBadge(r.bookingStatus),
+        label: "Booking Status",
+        render: (r) => (
+          <StatusSelect
+            value={r.bookingStatus}
+            options={BOOKING_STATUS}
+            loading={updatingId === `${r.id}-bookingStatus`}
+            onChange={(val) => handleStatusUpdate(r.id, "bookingStatus", val)}
+          />
+        ),
+      },
+      {
+        key: "paymentStatus",
+        label: "Payment Status",
+        render: (r) => (
+          <StatusSelect
+            value={r.paymentStatus || "pending"}
+            options={PAYMENT_STATUS}
+            loading={updatingId === `${r.id}-paymentStatus`}
+            onChange={(val) => handleStatusUpdate(r.id, "paymentStatus", val)}
+          />
+        ),
       },
       {
         key: "actions",
-        label: "",
+        label: "Action",
         width: "100px",
         className: "text-right",
         render: (r) => (
@@ -193,10 +262,9 @@ export default function AdminBookings() {
               e.stopPropagation();
               setSelected(r);
             }}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-colors"
           >
             <Eye className="h-3.5 w-3.5" />
-            Details
           </button>
         ),
       },
@@ -215,8 +283,8 @@ export default function AdminBookings() {
   const hasFilters = search || status !== "all" || packageId || travelFrom || travelTo;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="space-y-6 w-full max-w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard label="Total bookings" value={stats.total} icon={CalendarCheck} color="orange" />
         <StatCard label="Confirmed" value={stats.confirmed} icon={CheckCircle} color="emerald" />
         <StatCard label="Pending" value={stats.pending} icon={AlertCircle} color="amber" />
@@ -308,7 +376,7 @@ export default function AdminBookings() {
           <button
             type="button"
             onClick={() => load()}
-            className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800"
+            className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800"
           >
             Apply filters
           </button>
@@ -318,7 +386,7 @@ export default function AdminBookings() {
         </div>
       </div>
 
-      <div className="space-y-4 bg-white border border-slate-100 p-4 sm:p-6 lg:p-8 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-100 rounded-xl shadow-sm overflow-hidden p-4 sm:p-6 lg:p-8">
         <NewDataTable
           columns={columns}
           rows={rows}
@@ -327,7 +395,6 @@ export default function AdminBookings() {
           defaultPageSize={10}
           pageSizeOptions={[10, 20, 50]}
         />
-
       </div>
 
 

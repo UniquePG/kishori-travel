@@ -179,6 +179,8 @@ export const leads = pgTable('leads', {
   numberOfPeople: integer('number_of_people'),
   budget: decimal('budget', { precision: 12, scale: 2 }),
   message: text('message'),
+  days: integer('days'),
+  night: integer('night'),
   source: leadSourceEnum('source').default('website').notNull(),
   status: leadStatusEnum('status').default('new').notNull(),
   assignedTo: integer('assigned_to').references(() => users.id),

@@ -166,8 +166,8 @@ export default function AdminTestimonials() {
             <User className="h-5 w-5 text-slate-400" />
           </div>
           <div>
-            <p className="font-bold text-slate-900">{row.customerName}</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{row.location}</p>
+            <p className="font-semibold text-slate-900">{row.customerName}</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{row.location}</p>
           </div>
         </div>
       )

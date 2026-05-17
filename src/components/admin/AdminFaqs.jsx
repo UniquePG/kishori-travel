@@ -6,7 +6,6 @@ import {
   Edit3, Trash2, Plus, X, HelpCircle, ChevronDown, 
   ChevronUp, CheckCircle2, XCircle, Clock 
 } from "lucide-react";
-import DataTable from "@/components/common/DataTable";
 import { cn } from "@/lib/utils";
 import NewDataTable from "../common/NewDataTable";
 
@@ -20,8 +19,8 @@ export default function AdminFaqs() {
   const [formData, setFormData] = useState({
     question: "",
     answer: "",
-    sort_order: 0,
-    is_active: true
+    sortOrder: 0,
+    isActive: true
   });
 
   useEffect(() => {
@@ -50,14 +49,19 @@ export default function AdminFaqs() {
   const handleOpenModal = (faq = null) => {
     if (faq) {
       setEditingFaq(faq);
-      setFormData({ ...faq });
+      setFormData({
+        question: faq.question || "",
+        answer: faq.answer || "",
+        sortOrder: faq.sortOrder ?? 0,
+        isActive: faq.isActive ?? true
+      });
     } else {
       setEditingFaq(null);
       setFormData({
         question: "",
         answer: "",
-        sort_order: faqs.length,
-        is_active: true
+        sortOrder: faqs.length,
+        isActive: true
       });
     }
     setIsModalOpen(true);
@@ -135,8 +139,8 @@ export default function AdminFaqs() {
       label: "Question & Answer",
       render: (row) => (
         <div className="max-w-md">
-          <p className="font-bold text-slate-900 mb-1 text-sm sm:text-base">{row.question}</p>
-          <p className="text-xs text-slate-500 line-clamp-2 sm:line-clamp-none">{row.answer}</p>
+          <p className="font-semibold text-slate-900 mb-1 text-sm sm:text-base">{row.question}</p>
+          <p className="text-sm text-slate-500 line-clamp-2 sm:line-clamp-none">{row.answer}</p>
         </div>
       )
     },
@@ -167,7 +171,7 @@ export default function AdminFaqs() {
     },
     {
       key: "actions",
-      label: "",
+      label: "Action",
       className: "text-right",
       render: (row) => (
         <div className="flex items-center justify-end gap-2">
@@ -243,15 +247,15 @@ export default function AdminFaqs() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Sort Order</label>
-                  <input type="number" value={formData.sort_order} onChange={e => setFormData({...formData, sort_order: parseInt(e.target.value)})} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all font-medium text-sm" />
+                  <input type="number" value={formData.sortOrder} onChange={e => setFormData({...formData, sortOrder: parseInt(e.target.value) || 0})} className="w-full px-5 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all font-medium text-sm" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Status</label>
                   <div className="flex items-center gap-3 mt-1 sm:mt-2">
-                    <button type="button" onClick={() => setFormData({...formData, is_active: true})} className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${formData.is_active ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                    <button type="button" onClick={() => setFormData({...formData, isActive: true})} className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${formData.isActive ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
                       Active
                     </button>
-                    <button type="button" onClick={() => setFormData({...formData, is_active: false})} className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${!formData.is_active ? 'bg-slate-500 text-white shadow-lg shadow-slate-500/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                    <button type="button" onClick={() => setFormData({...formData, isActive: false})} className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all ${!formData.isActive ? 'bg-slate-500 text-white shadow-lg shadow-slate-500/20' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
                       Inactive
                     </button>
                   </div>

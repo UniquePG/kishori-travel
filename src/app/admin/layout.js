@@ -156,7 +156,7 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* ── Main Content ── */}
-      <main className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+      <main className="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0 relative">
 
         {/* Top Navbar */}
         <header className="h-16 sm:h-20 bg-white border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-40">
@@ -199,7 +199,7 @@ export default function AdminLayout({ children }) {
             </div>
           </header>
 
-          <div className="  overflow-hidden min-h-[500px] w-full max-w-full">
+          <div className="w-full max-w-full overflow-hidden min-h-[500px]">
             {children}
           </div>
         </div>

@@ -31,12 +31,12 @@ export async function POST(request) {
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { question, answer, sort_order, is_active } = await request.json();
+    const { question, answer, sortOrder, isActive } = await request.json();
     const [faq] = await db.insert(schema.faqs).values({
       question,
       answer,
-      sortOrder: Number(sort_order) || 0,
-      isActive: is_active ?? true
+      sortOrder: Number(sortOrder) || 0,
+      isActive: isActive ?? true
     }).returning();
     return NextResponse.json(faq);
   } catch (error) {

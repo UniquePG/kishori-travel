@@ -5,66 +5,113 @@ export default function HomeFooter() {
     <footer className="home-footer">
       <div className="footer-grid">
         <div className="footer-brand">
-          <div className="f-logo">Kishori <span>Travels</span></div>
-          <p>Connecting you to the sacred and beautiful landscapes of India. Experience travel like never before with our expert-guided tours.</p>
+          <div className="f-logo">
+            Kishori <span>Travels</span>
+          </div>
+          <p>
+            Connecting you to the sacred and beautiful landscapes of India.
+            Experience travel like never before with our expert-guided tours.
+          </p>
           <div className="social-row">
-            <a href="#" className="social-btn"><i className="fa-brands fa-facebook-f"></i></a>
-            <a href="#" className="social-btn"><i className="fa-brands fa-instagram"></i></a>
-            <a href="#" className="social-btn"><i className="fa-brands fa-whatsapp"></i></a>
+            <a href="#" className="social-btn">
+              <i className="fa-brands fa-facebook-f"></i>
+            </a>
+            <a href="#" className="social-btn">
+              <i className="fa-brands fa-instagram"></i>
+            </a>
+            <a href="#" className="social-btn">
+              <i className="fa-brands fa-whatsapp"></i>
+            </a>
           </div>
         </div>
 
         <div className="footer-col">
           <h5>Quick Links</h5>
           <ul>
-            <li><a href="#hero">Home</a></li>
-            <li><a href="#packages">Tour Packages</a></li>
-            <li><a href="#gallery">Gallery</a></li>
-            <li><a href="#faq">FAQ</a></li>
+            <li>
+              <a href="#hero">Home</a>
+            </li>
+            <li>
+              <a href="#packages">Tour Packages</a>
+            </li>
+            <li>
+              <a href="#gallery">Gallery</a>
+            </li>
+            <li>
+              <a href="#faq">FAQ</a>
+            </li>
           </ul>
         </div>
 
         <div className="footer-col">
           <h5>Popular Tours</h5>
           <ul>
-            <li><a href="#">Kedarnath Yatra</a></li>
-            <li><a href="#">Kashmir Holiday</a></li>
-            <li><a href="#">Manali Special</a></li>
-            <li><a href="#">Goa Beach Tour</a></li>
+            <li>
+              <a href="#">Kedarnath Yatra</a>
+            </li>
+            <li>
+              <a href="#">Kashmir Holiday</a>
+            </li>
+            <li>
+              <a href="#">Manali Special</a>
+            </li>
+            <li>
+              <a href="#">Goa Beach Tour</a>
+            </li>
           </ul>
         </div>
 
         <div className="footer-col">
           <h5>Contact Info</h5>
           <ul>
-            <li><a href="mailto:info@kishoritravels.com">info@kishoritravels.com</a></li>
-            <li><a href="tel:+919811111111">+91 98111 11111</a></li>
-            <li><span>Delhi, India</span></li>
+            <li>
+              <a href="mailto:info@kishoritravels.com">
+                info@kishoritravels.com
+              </a>
+            </li>
+            <li>
+              <a href="tel:+919811111111">+91 98111 11111</a>
+            </li>
+            <li>
+              <span>Delhi, India</span>
+            </li>
           </ul>
         </div>
       </div>
 
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} Kishori Travels. All Rights Reserved.</p>
+        <p>
+          © {new Date().getFullYear()} Kishori Travels. All Rights Reserved.
+        </p>
         <p>Crafted with ❤️ for Travelers</p>
       </div>
 
       <div className="fab-group">
-        <a href="https://wa.me/919811111111" className="fab fab-wa flex " target="_blank">
+        <a
+          href="https://wa.me/919811111111"
+          className="fab flex items-center justify-center fab-wa"
+          target="_blank"
+        >
           <i className="fa-brands fa-whatsapp fab-icon"></i>
-          <span className="md:ml-2 fab-label">WhatsApp</span>
+          <span className="fab-label">WhatsApp</span>
         </a>
-        <a href="tel:+919811111111" className="fab fab-call flex">
+        <a
+          href="tel:+919811111111"
+          className="fab flex items-center justify-center fab-call"
+        >
           <i className="fa-solid fa-phone fab-icon"></i>
-          <span className="md:ml-2 fab-label">Call Us</span>
+          <span className="fab-label">Call Us</span>
         </a>
-        <a href="https://instagram.com" className="fab fab-ig flex">
+        <a href="https://instagram.com" className="fab fab-ig">
           <i className="fa-brands fa-instagram fab-icon"></i>
-          <span className="md:ml-2 fab-label ">Instagram</span>
+          <span className="fab-label">Instagram</span>
         </a>
       </div>
 
-      <button id="btt" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+      <button
+        id="btt"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      >
         <i className="fa-solid fa-arrow-up"></i>
       </button>
     </footer>

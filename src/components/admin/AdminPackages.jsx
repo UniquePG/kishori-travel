@@ -88,23 +88,23 @@ export default function AdminPackages() {
             )}
           </div>
           <div className="min-w-0">
-            <div className="font-black text-slate-900 truncate max-w-[200px]">{pkg.title}</div>
+            <div className="font-semibold text-slate-900 truncate max-w-[200px]">{pkg.title}</div>
             <div className="flex flex-wrap items-center gap-2 mt-0.5">
-              <span className="text-[10px] font-black text-[#e8611a] uppercase tracking-tight bg-orange-50 px-2 py-0.5 rounded-md">
+              <span className="text-[10px]  font-semibold text-[#e8611a] uppercase tracking-tight bg-orange-50 px-2 py-0.5 rounded-md">
                 {pkg.durationDays} Days
               </span>
               {pkg.isFeatured && (
-                <span className="text-[10px] font-black text-blue-600 uppercase tracking-tight bg-blue-50 px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-tight bg-blue-50 px-2 py-0.5 rounded-md">
                   Featured
                 </span>
               )}
               {pkg.isUpcoming && (
-                <span className="text-[10px] font-black text-amber-800 uppercase tracking-tight bg-amber-100 px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-semibold text-amber-800 uppercase tracking-tight bg-amber-100 px-2 py-0.5 rounded-md">
                   Upcoming
                 </span>
               )}
               {pkg.offerTitle && (
-                <span className="text-[10px] font-black text-emerald-800 uppercase tracking-tight bg-emerald-50 px-2 py-0.5 rounded-md max-w-[120px] truncate" title={pkg.offerTitle}>
+                <span className="text-[10px] font-semibold text-emerald-800 uppercase tracking-tight bg-emerald-50 px-2 py-0.5 rounded-md max-w-[120px] truncate" title={pkg.offerTitle}>
                   Offer
                 </span>
               )}
@@ -128,9 +128,9 @@ export default function AdminPackages() {
       label: "Price",
       render: (pkg) => (
         <div className="flex flex-col">
-          <span className="font-black text-slate-900">{formatCurrency(pkg.currentPrice)}</span>
+          <span className="font-semibold text-slate-900">{formatCurrency(pkg.currentPrice)}</span>
           {pkg.oldPrice && (
-            <span className="text-[10px] font-bold text-slate-300 line-through">
+            <span className="text-[10px] font-semibold text-slate-300 line-through">
               {formatCurrency(pkg.oldPrice)}
             </span>
           )}
@@ -140,9 +140,10 @@ export default function AdminPackages() {
     {
       key: "status",
       label: "Status",
+      className: "text-center",
       render: (pkg) => (
         <div className={cn(
-          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider",
+          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-semibold uppercase tracking-wider",
           pkg.isActive 
             ? "bg-green-50 text-green-600 border border-green-100" 
             : "bg-slate-50 text-slate-400 border border-slate-100"
@@ -198,12 +199,12 @@ export default function AdminPackages() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div>
-          <h3 className="text-2xl font-black text-[#e8611a] tracking-tight">Tour Packages</h3>
+          <h3 className="text-2xl font-semibold text-[#e8611a] tracking-tight">Tour Packages</h3>
           <p className="text-sm text-slate-500 font-medium">Manage and monitor all your travel offerings.</p>
         </div>
         <button 
           onClick={() => handleOpenEditModal()}
-          className="flex items-center gap-2 bg-[#e8611a] text-white px-6 py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-[#e8611a]/10 hover:bg-[#e8611a] transition-all active:scale-95 group"
+          className="flex items-center gap-2 bg-[#e8611a] text-white px-6 py-3.5 rounded-2xl font-semibold text-sm shadow-xl shadow-[#e8611a]/10 hover:bg-[#e8611a] cursor-pointer transition-all active:scale-95 group"
         >
           <Plus className="h-4 w-4 group-hover:rotate-90  transition-transform duration-300" />
           Add New Package
