@@ -1,32 +1,90 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState } from "react";
-import { 
-  X, User, Phone, Mail, MapPin, Calendar, 
-  Users, MessageSquare, Clock, Shield, 
-  Send, AlertCircle, CheckCircle2, Save
+import { useState, useEffect } from "react";
+import {
+  X,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  Users,
+  MessageSquare,
+  Loader2,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSourceIcon } from "@/lib/helpers";
+
+const STATUS_OPTIONS = [
+  { value: "new", label: "New" },
+  { value: "contacted", label: "Contacted" },
+  { value: "qualified", label: "Qualified" },
+  { value: "proposal_sent", label: "Proposal sent" },
+  { value: "negotiation", label: "Negotiation" },
+  { value: "won", label: "Won" },
+  { value: "lost", label: "Lost" },
+];
+
+const statusStyles = {
+  new: "bg-blue-50 text-blue-700 ring-blue-100",
+  contacted: "bg-purple-50 text-purple-700 ring-purple-100",
+  qualified: "bg-indigo-50 text-indigo-700 ring-indigo-100",
+  proposal_sent: "bg-orange-50 text-orange-700 ring-orange-100",
+  negotiation: "bg-amber-50 text-amber-700 ring-amber-100",
+  won: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+  lost: "bg-red-50 text-red-700 ring-red-100",
+};
+
+function DetailItem({ icon: Icon, label, value, iconNode }) {
+  if (!value) return null;
+  return (
+    <div className="min-w-0 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2.5">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</p>
+      <div className="mt-1.5 flex min-w-0 items-center gap-2">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-100 bg-white text-slate-400">
+          {iconNode ?? (Icon && <Icon className="h-3.5 w-3.5" />)}
+        </span>
+        <p className="truncate text-sm font-medium text-slate-800 capitalize">{value}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function MemberViewLeadModal({ lead, onClose, onUpdate }) {
   const [status, setStatus] = useState(lead?.status || "new");
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (lead) {
+      setStatus(lead.status || "new");
+      setNote("");
+      setSaved(false);
+    }
+  }, [lead]);
+
+  const hasChanges = status !== lead?.status || note.trim().length > 0;
 
   const handleUpdate = async () => {
+    if (!hasChanges || isSubmitting) return;
     setIsSubmitting(true);
+    setSaved(false);
     try {
       const res = await fetch(`/api/member/leads/${lead.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, note }),
+        body: JSON.stringify({ status, note: note.trim() || undefined }),
       });
-      
+
       if (res.ok) {
         const updatedLead = await res.json();
         onUpdate(updatedLead);
-        onClose();
+        setSaved(true);
+        setNote("");
+        setTimeout(() => setSaved(false), 2500);
+        onClose()
       }
     } catch (error) {
       console.error("Failed to update lead", error);
@@ -37,171 +95,159 @@ export default function MemberViewLeadModal({ lead, onClose, onUpdate }) {
 
   if (!lead) return null;
 
+  const destination = lead.destinationInterest?.title || "General inquiry";
+  const travelDate = lead.travelDate
+    ? new Date(lead.travelDate).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+  const pax = lead.numberOfPeople ? `${lead.numberOfPeople} travelers` : null;
+  const sourceLabel = lead.source?.replace(/_/g, " ") || "—";
+
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-white/20">
+    <div
+      className="fixed inset-0 z-60 flex items-end sm:items-center justify-center bg-slate-900/50 p-0 sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="flex w-full max-h-[92vh] sm:max-h-[88vh] max-w-2xl flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl bg-white shadow-xl border border-slate-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 border border-orange-200 shadow-inner">
-              <User className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-serif text-slate-900">{lead.fullName}</h2>
-              <div className="flex items-center gap-2 mt-0.5">
-                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Lead ID: #{lead.id}</span>
-                 <span className="w-1 h-1 rounded-full bg-slate-300" />
-                 <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600">Assigned to You</span>
-              </div>
-            </div>
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-medium text-slate-400">Lead #{lead.id}</p>
+            <h2 className="mt-0.5 truncate text-lg font-semibold text-slate-900">{lead.fullName}</h2>
+            <span
+              className={cn(
+                "mt-2 inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-inset",
+                statusStyles[lead.status] || "bg-slate-50 text-slate-600 ring-slate-100"
+              )}
+            >
+              {STATUS_OPTIONS.find((s) => s.value === lead.status)?.label || lead.status}
+            </span>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors active:scale-90">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            aria-label="Close"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Left: Lead Details */}
-            <div className="md:col-span-2 space-y-8">
-              {/* Core Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                   <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Contact Information</h3>
-                   <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-slate-600">
-                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                          <Phone className="h-4 w-4" />
-                        </div>
-                        <span className="text-sm font-semibold">{lead.phone}</span>
-                      </div>
-                      {lead.email && (
-                        <div className="flex items-center gap-3 text-slate-600">
-                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                            <Mail className="h-4 w-4" />
-                          </div>
-                          <span className="text-sm font-semibold truncate">{lead.email}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3 text-slate-600">
-                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                          <Shield className="h-4 w-4" />
-                        </div>
-                        <div className="flex items-center gap-2 text-sm font-semibold">
-                          Source: <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[10px] uppercase font-bold">{getSourceIcon(lead.source)} {lead.source}</span>
-                        </div>
-                      </div>
-                   </div>
-                </div>
-
-                <div className="space-y-4">
-                   <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Travel Preferences</h3>
-                   <div className="space-y-3">
-                      <div className="flex items-center gap-3 text-slate-600">
-                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                          <MapPin className="h-4 w-4" />
-                        </div>
-                        <span className="text-sm font-semibold">{lead.destinationInterest || "General Inquiry"}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-slate-600">
-                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                          <Calendar className="h-4 w-4" />
-                        </div>
-                        <span className="text-sm font-semibold">
-                          {lead.travelDate ? new Date(lead.travelDate).toLocaleDateString() : "Flexible Date"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-slate-600">
-                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
-                          <Users className="h-4 w-4" />
-                        </div>
-                        <span className="text-sm font-semibold">{lead.numberOfPeople || "Not Specified"} Pax</span>
-                      </div>
-                   </div>
-                </div>
-              </div>
-
-              {/* Message */}
-              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 relative">
-                <MessageSquare className="absolute top-6 right-6 h-5 w-5 text-slate-200" />
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Inquiry Message</h3>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                  {lead.message || "No specific requirements mentioned."}
-                </p>
-              </div>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+          {/* Contact & trip */}
+          <section>
+            <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Details</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <DetailItem icon={Phone} label="Phone" value={lead.phone} />
+              <DetailItem icon={Mail} label="Email" value={lead.email} />
+              <DetailItem icon={MapPin} label="Interest" value={destination} />
+              <DetailItem icon={Calendar} label="Travel date" value={travelDate} />
+              <DetailItem icon={Users} label="Group size" value={pax} />
+              <DetailItem label="Source" value={sourceLabel} iconNode={getSourceIcon(lead.source)} />
             </div>
+          </section>
 
-            {/* Right: Actions & Stats */}
-            <div className="space-y-6">
-              {/* Status Update */}
-              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl shadow-slate-200/20">
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Update Status</h3>
-                <div className="space-y-2">
-                  {[
-                    { id: 'new', label: 'New Lead', color: 'bg-blue-500' },
-                    { id: 'contacted', label: 'Contacted', color: 'bg-purple-500' },
-                    { id: 'qualified', label: 'Qualified', color: 'bg-orange-500' },
-                    { id: 'proposal_sent', label: 'Proposal', color: 'bg-amber-500' },
-                    { id: 'won', label: 'Won / Booked', color: 'bg-emerald-500' },
-                    { id: 'lost', label: 'Lost', color: 'bg-red-500' },
-                  ].map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => setStatus(s.id)}
-                      className={cn(
-                        "w-full flex items-center justify-between p-3 rounded-xl border transition-all text-sm font-bold",
-                        status === s.id 
-                          ? "border-orange-500 bg-orange-50 text-orange-600 shadow-sm" 
-                          : "border-slate-100 hover:border-slate-200 text-slate-500"
-                      )}
-                    >
-                      {s.label}
-                      <div className={cn("w-2 h-2 rounded-full", status === s.id ? s.color : "bg-slate-200")} />
-                    </button>
+          {lead.message && (
+            <div >
+              <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <MessageSquare className="h-3.5 w-3.5" />
+                Message
+              </h3>
+              <p className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
+                {lead.message}
+              </p>
+            </div>
+          )}
+
+          {/* Status update */}
+          <section className="rounded-xl border border-slate-200 bg-white p-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Update status</h3>
+            <div className="mt-3 space-y-3">
+              <div>
+                <label htmlFor="lead-status" className="sr-only">
+                  Status
+                </label>
+                <select
+                  id="lead-status"
+                  value={status}
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    setSaved(false);
+                  }}
+                  disabled={isSubmitting}
+                  className={cn(
+                    "w-full rounded-lg border-0 px-3 py-2.5 text-sm font-medium ring-1 ring-inset focus:outline-none focus:ring-2 focus:ring-orange-500/30 disabled:opacity-60",
+                    statusStyles[status] || "bg-slate-50 text-slate-700 ring-slate-200"
+                  )}
+                >
+                  {STATUS_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
-
-              {/* Note Input */}
-              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl shadow-slate-200/20">
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Add Internal Note</h3>
+              <div>
+                <label htmlFor="lead-note" className="mb-1.5 block text-xs font-medium text-slate-500">
+                  Note <span className="font-normal text-slate-400">(optional)</span>
+                </label>
                 <textarea
+                  id="lead-note"
                   value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Update about your last call or progress..."
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 min-h-[100px] resize-none"
+                  onChange={(e) => {
+                    setNote(e.target.value);
+                    setSaved(false);
+                  }}
+                  disabled={isSubmitting}
+                  placeholder="Brief update from your last interaction…"
+                  rows={3}
+                  className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:opacity-60"
                 />
               </div>
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Clock className="h-3.5 w-3.5" />
-            Last updated {new Date(lead.updatedAt).toLocaleString()}
-          </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <button 
+        <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/80 px-5 py-4">
+          <p className="text-[11px] text-slate-400">
+            Updated {new Date(lead.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+          </p>
+          <div className="flex items-center gap-2">
+            {saved && (
+              <span className="flex items-center gap-1 text-xs font-medium text-emerald-600">
+                <Check className="h-3.5 w-3.5" />
+                Saved
+              </span>
+            )}
+            <button
+              type="button"
               onClick={onClose}
-              className="flex-1 sm:flex-none px-6 py-3 rounded-xl font-bold text-sm text-slate-500 hover:bg-slate-100 transition-all"
+              disabled={isSubmitting}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200/80 transition-colors disabled:opacity-50"
             >
-              Discard
+              Close
             </button>
-            <button 
+            <button
+              type="button"
               onClick={handleUpdate}
-              disabled={isSubmitting || (status === lead.status && !note)}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-sm bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting || !hasChanges}
+              className="inline-flex min-w-[100px] items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? (
-                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
                 <>
-                  <Save className="h-4 w-4" />
-                  Save Changes
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving…
                 </>
+              ) : (
+                "Save"
               )}
             </button>
           </div>

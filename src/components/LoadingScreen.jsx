@@ -70,7 +70,7 @@ export default function LoadingScreen() {
           ref={logoRef} 
           className="font-['Cormorant_Garamond'] text-5xl font-medium text-[#d4a017] tracking-[0.04em] leading-[1.1]"
         >
-          Kishori <span className="text-[#d4a017]">Travel</span>
+          Kishori <span className="text-[#d4a017]">Travels</span>
         </div>
         <div 
           ref={underlineRef} 

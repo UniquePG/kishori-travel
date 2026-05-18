@@ -5,17 +5,21 @@ import * as schema from "@/db/schema";
 export async function POST(request) {
   try {
     const body = await request.json();
+
+    const destinationInterested = body.destinationInterest === '0' ? null : parseInt(body.destinationInterest);
+    const days = body.days ? parseInt(body.days) : null;
+    const night = body.night ? parseInt(body.night) : null;
     
     const [lead] = await db.insert(schema.leads).values({
       fullName: body.fullName,
       phone: body.phone,
       email: body.email,
-      destinationInterest: body.destinationInterest ? parseInt(body.destinationInterest) : null,
+      destinationInterest: destinationInterested,
       numberOfPeople: body.numberOfPeople ? parseInt(body.numberOfPeople) : null,
       budget: body.budget ? body.budget.toString() : null,
       message: body.message,
-      days: body.days ? parseInt(body.days) : null,
-      night: body.night ? parseInt(body.night) : null,
+      days: days,
+      night: night,
       source: "website",
       status: "new",
     }).returning();

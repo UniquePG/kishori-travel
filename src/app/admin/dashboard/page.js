@@ -19,6 +19,7 @@ import {
   Eye,
   Edit3,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [editingLead, setEditingLead] = useState(null);
   const [viewingLead, setViewingLead] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [updatingField, setUpdatingField] = useState({ id: null, field: null });
 
   const handleOpenModal = (lead = null) => {
     setEditingLead(lead);
@@ -97,6 +99,7 @@ export default function DashboardPage() {
   }, [fetchStats, fetchMembers]);
 
   const handleUpdateLeadField = async (id, field, value) => {
+    setUpdatingField({ id, field });
     try {
       const lead = (data.recentLeads || []).find((l) => l.id === id);
       if (!lead) {
@@ -116,12 +119,15 @@ export default function DashboardPage() {
             l.id === updated.id ? updated : l
           ),
         }));
+        toast.success("Lead updated successfully")
       } else {
         toast.error(updated?.error || "Could not update lead");
       }
     } catch (error) {
       console.error("Failed to update lead field", error);
       toast.error("Could not update lead");
+    } finally {
+      setUpdatingField({ id: null, field: null });
     }
   };
 
@@ -193,6 +199,15 @@ export default function DashboardPage() {
         </div>
       ),
     },
+    {
+      key: "package",
+      label: "Package",
+      render: (row) => (
+        <div className="space-y-1">
+          {row?.destinationInterest?.title ?  row?.destinationInterest?.title : "Custom Package" }
+        </div>
+      ),
+    },
 
     {
       key: "source",
@@ -211,48 +226,58 @@ export default function DashboardPage() {
     },
 
     {
-      key: "assigned_to",
+      key: "assignedTo",
       label: "Assigned To",
-      render: (row) => (
-        <select
-          value={row.assignee?.id || ""}
-          onChange={(e) => handleUpdateLeadField(row.id, "assignee_to", e.target.value)}
-          className="text-xs font-bold bg-slate-50 border border-slate-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer w-full max-w-[120px]"
-        >
-          <option value="">Unassigned</option>
-          {members.map(m => (
-            <option key={m.id} value={m.id}>{m.name}</option>
-          ))}
-        </select>
-      ),
+      render: (row) =>
+        updatingField.id === row.id && updatingField.field === "assignedTo" ? (
+          <div className="flex items-center justify-center w-full max-w-[120px] py-1.5 text-orange-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          <select
+            value={row.assignee?.id || "0"}
+            onChange={(e) => handleUpdateLeadField(row.id, "assignedTo", e.target.value)}
+            className="text-xs font-bold bg-slate-50 border border-slate-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer w-full max-w-[120px]"
+          >
+            <option value="0">Unassigned</option>
+            {members.map(m => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        ),
     },
 
     {
       key: "status",
       label: "Status",
-      render: (row) => (
-        <select
-          value={row.status}
-          onChange={(e) =>
-            handleUpdateLeadField(row.id, "status", e.target.value)
-          }
-          className={cn(
-            "text-[10px] font-bold  uppercase tracking-widest rounded-lg px-3 py-1.5 border-none focus:ring-2 transition-all cursor-pointer",
-            getStatusColor(row.status),
-          )}
-        >
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="qualified">Qualified</option>
-          <option value="proposal_sent">Proposal</option>
-          <option value="negotiation">Negotiation</option>
-          <option value="won">Won</option>
-          <option value="lost">Lost</option>
-        </select>
-      ),
+      render: (row) =>
+        updatingField.id === row.id && updatingField.field === "status" ? (
+          <div className="flex items-center justify-center py-1.5 text-orange-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          <select
+            value={row.status}
+            onChange={(e) =>
+              handleUpdateLeadField(row.id, "status", e.target.value)
+            }
+            className={cn(
+              "text-[10px] font-bold  uppercase tracking-widest rounded-lg px-3 py-1.5 border-none focus:ring-2 transition-all cursor-pointer",
+              getStatusColor(row.status),
+            )}
+          >
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="qualified">Qualified</option>
+            <option value="proposal_sent">Proposal</option>
+            <option value="negotiation">Negotiation</option>
+            <option value="won">Won</option>
+            <option value="lost">Lost</option>
+          </select>
+        ),
     },
     {
-      key: "created_at",
+      key: "createdAt",
       label: "Date",
       render: (row) => (
         <div className="text-xs text-slate-400 whitespace-nowrap font-semibold">

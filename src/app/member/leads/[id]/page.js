@@ -60,6 +60,7 @@ export default function LeadDetailPage({ params: paramsPromise }) {
     }
   };
 
+  console.log("leadddddd ", lead)
   if (isLoading) return <div className="p-20 text-center">Loading details...</div>;
   if (!lead) return null;
 
@@ -87,7 +88,7 @@ export default function LeadDetailPage({ params: paramsPromise }) {
                   <User className="h-6 w-6" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-serif text-slate-900">{lead.full_name}</h1>
+                  <h1 className="text-3xl font-serif text-slate-900">{lead.fullName}</h1>
                   <p className="text-slate-500 font-medium">Inquiry from {lead.source}</p>
                 </div>
               </div>
@@ -114,14 +115,14 @@ export default function LeadDetailPage({ params: paramsPromise }) {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Destination</p>
                     <p className="text-lg font-bold text-slate-900 flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-orange-500" />
-                      {lead.destination_interest || "Flexible"}
+                      {lead.destinationInterest?.title || "Flexible"}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Travel Date</p>
                     <p className="text-lg font-bold text-slate-900 flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-orange-500" />
-                      {lead.travel_date ? new Date(lead.travel_date).toLocaleDateString() : "TBD"}
+                      {lead.travelDate ? new Date(lead.travelDate).toLocaleDateString() : "TBD"}
                     </p>
                   </div>
                 </div>

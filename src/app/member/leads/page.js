@@ -1,13 +1,15 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
-  Target, Clock, MapPin, Phone, Mail, 
-  Search, Eye, Filter, ArrowUpDown
+  Clock, MapPin, Phone, Mail, 
+  Search, Eye, Loader2
 } from "lucide-react";
 import NewDataTable from "@/components/common/NewDataTable";
 import MemberViewLeadModal from "@/components/member/modals/MemberViewLeadModal";
 import { cn } from "@/lib/utils";
+import { getSourceIcon } from "@/lib/helpers";
 import { useSearchParams } from "next/navigation";
 
 export default function MemberLeads() {
@@ -15,21 +17,11 @@ export default function MemberLeads() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState(null);
+  const [updatingField, setUpdatingField] = useState({ id: null, field: null });
   const searchParams = useSearchParams();
   const leadIdFromUrl = searchParams.get("id");
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  useEffect(() => {
-    if (leadIdFromUrl && leads.length > 0) {
-      const lead = leads.find(l => l.id.toString() === leadIdFromUrl);
-      if (lead) setSelectedLead(lead);
-    }
-  }, [leadIdFromUrl, leads]);
-
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/member/leads");
@@ -40,10 +32,28 @@ export default function MemberLeads() {
     } finally {
       setIsLoading(false);
     }
-  };
+  },[])
+
+  useEffect(() => {
+    fetchLeads();
+  }, [fetchLeads]);
+
+  useEffect(() => {
+    if (leadIdFromUrl && leads.length > 0) {
+      const lead = leads.find(l => l.id.toString() === leadIdFromUrl);
+      if (lead) setSelectedLead(lead);
+    }
+  }, [leadIdFromUrl, leads]);
+
+
 
   const handleUpdateSuccess = (updatedLead) => {
-    setLeads(leads.map(l => l.id === updatedLead.id ? updatedLead : l));
+    setLeads((prev) =>
+      prev.map((l) => (l.id === updatedLead.id ? { ...l, ...updatedLead } : l))
+    );
+    setSelectedLead((prev) =>
+      prev?.id === updatedLead.id ? { ...prev, ...updatedLead } : prev
+    );
   };
 
   const getStatusColor = (status) => {
@@ -52,6 +62,7 @@ export default function MemberLeads() {
       contacted: "bg-purple-50 text-purple-600 border-purple-100",
       qualified: "bg-indigo-50 text-indigo-600 border-indigo-100",
       proposal_sent: "bg-orange-50 text-orange-600 border-orange-100",
+      negotiation: "bg-amber-50 text-amber-600 border-amber-100",
       won: "bg-emerald-50 text-emerald-600 border-emerald-100",
       lost: "bg-red-50 text-red-600 border-red-100",
     };
@@ -59,7 +70,7 @@ export default function MemberLeads() {
   };
 
   const handleUpdateLeadField = async (id, field, value) => {
-
+    setUpdatingField({ id, field });
     try {
       const res = await fetch(`/api/member/leads/${id}`, {
         method: "PUT",
@@ -68,10 +79,17 @@ export default function MemberLeads() {
       });
       const updated = await res.json();
       if (res.ok) {
-        setLeads(leads.map((l) => (l.id === updated.id ? updated : l)));
+        setLeads((prev) =>
+          prev.map((l) => (l.id === updated.id ? { ...l, ...updated } : l))
+        );
+        setSelectedLead((prev) =>
+          prev?.id === updated.id ? { ...prev, ...updated } : prev
+        );
       }
     } catch (error) {
       console.error("Failed to update lead field", error);
+    } finally {
+      setUpdatingField({ id: null, field: null });
     }
   };
 
@@ -122,40 +140,55 @@ export default function MemberLeads() {
       render: (row) => (
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
           <MapPin className="h-3.5 w-3.5 text-orange-500 shrink-0" />
-          <span className="truncate max-w-[150px]">{row.destinationInterest || "General Inquiry"}</span>
+          <span className="truncate max-w-[150px]">{row.destinationInterest?.title || "General Inquiry"}</span>
         </div>
+      )
+    },
+    {
+      key: "source",
+      label: "Source",
+      render: (row) => (
+        <span className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-slate-600">
+          {getSourceIcon(row.source)}
+          {row.source?.replace("_", " ") || "—"}
+        </span>
       )
     },
     {
       key: "status",
       label: "Status",
       sortable: true,
-      render: (row) => (
-        <select
-          value={row.status}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) =>
-            handleUpdateLeadField(row.id, "status", e.target.value)
-          }
-          className={cn(
-            "text-[10px] font-black uppercase tracking-widest rounded-lg px-3 py-1.5 border-none focus:ring-2 transition-all cursor-pointer outline-none",
-            getStatusColor(row.status)
-          )}
-        >
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="qualified">Qualified</option>
-          <option value="proposal_sent">Proposal</option>
-          <option value="negotiation">Negotiation</option>
-          <option value="won">Won</option>
-          <option value="lost">Lost</option>
-        </select>
-      )
+      render: (row) =>
+        updatingField.id === row.id && updatingField.field === "status" ? (
+          <div className="flex items-center justify-center py-1.5 text-orange-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          <select
+            value={row.status}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) =>
+              handleUpdateLeadField(row.id, "status", e.target.value)
+            }
+            className={cn(
+              "text-[10px] font-black uppercase tracking-widest rounded-lg px-3 py-1.5 border-none focus:ring-2 transition-all cursor-pointer outline-none",
+              getStatusColor(row.status)
+            )}
+          >
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="qualified">Qualified</option>
+            <option value="proposal_sent">Proposal</option>
+            <option value="negotiation">Negotiation</option>
+            <option value="won">Won</option>
+            <option value="lost">Lost</option>
+          </select>
+        ),
     },
 
     {
       key: "actions",
-      label: "",
+      label: "Actions",
       className: "text-right",
       render: (row) => (
         <button 
@@ -171,7 +204,7 @@ export default function MemberLeads() {
   const filteredLeads = leads.filter(l => 
     l.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     l.phone.includes(searchQuery) ||
-    l.destinationInterest?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    l.destinationInterest?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     l.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

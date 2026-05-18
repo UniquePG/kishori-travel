@@ -25,6 +25,7 @@ import {
   Facebook,
   Store,
   Eye,
+  Loader2,
 } from "lucide-react";
 import DataTable from "@/components/common/DataTable";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ export default function AdminLeads() {
   const [viewingLead, setViewingLead] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [updatingField, setUpdatingField] = useState({ id: null, field: null });
 
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export default function AdminLeads() {
   };
 
   const handleUpdateLeadField = async (id, field, value) => {
+    setUpdatingField({ id, field });
     try {
       const lead = leads.find((l) => l.id === id);
       const res = await fetch(`/api/admin/leads`, {
@@ -95,12 +98,15 @@ export default function AdminLeads() {
       const updated = await res.json();
       if (res.ok) {
         setLeads(leads.map((l) => (l.id === updated.id ? updated : l)));
+        toast.success("Lead updated successfully");
       } else {
         toast.error(updated?.error || "Could not update lead");
       }
     } catch (error) {
       console.error("Failed to update lead field", error);
       toast.error("Could not update lead");
+    } finally {
+      setUpdatingField({ id: null, field: null });
     }
   };
 
@@ -250,48 +256,58 @@ export default function AdminLeads() {
       ),
     },
     {
-      key: "assigned_to",
+      key: "assignedTo",
       label: "Assignee",
-      render: (row) => (
-        <select
-          value={row.assignee?.id || ""}
-          onChange={(e) =>
-            handleUpdateLeadField(row.id, "assignee_to", e.target.value)
-          }
-          className="text-xs font-bold bg-slate-50 border border-slate-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer w-full max-w-[120px]"
-        >
-          <option value="">Unassigned</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      ),
+      render: (row) =>
+        updatingField.id === row.id && updatingField.field === "assignedTo" ? (
+          <div className="flex items-center justify-center w-full max-w-[120px] py-1.5 text-orange-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          <select
+            value={row.assignee?.id || "0"}
+            onChange={(e) =>
+              handleUpdateLeadField(row.id, "assignedTo", e.target.value)
+            }
+            className="text-xs font-bold bg-slate-50 border border-slate-100 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all cursor-pointer w-full max-w-[120px]"
+          >
+            <option value="0">Unassigned</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        ),
     },
     {
       key: "status",
       label: "Status",
-      render: (row) => (
-        <select
-          value={row.status}
-          onChange={(e) =>
-            handleUpdateLeadField(row.id, "status", e.target.value)
-          }
-          className={cn(
-            "text-[10px] font-black uppercase tracking-widest rounded-lg px-3 py-1.5 border-none focus:ring-2 transition-all cursor-pointer",
-            getStatusColor(row.status),
-          )}
-        >
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="qualified">Qualified</option>
-          <option value="proposal_sent">Proposal</option>
-          <option value="negotiation">Negotiation</option>
-          <option value="won">Won</option>
-          <option value="lost">Lost</option>
-        </select>
-      ),
+      render: (row) =>
+        updatingField.id === row.id && updatingField.field === "status" ? (
+          <div className="flex items-center justify-center py-1.5 text-orange-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : (
+          <select
+            value={row.status}
+            onChange={(e) =>
+              handleUpdateLeadField(row.id, "status", e.target.value)
+            }
+            className={cn(
+              "text-[10px] font-black uppercase tracking-widest rounded-lg px-3 py-1.5 border-none focus:ring-2 transition-all cursor-pointer",
+              getStatusColor(row.status),
+            )}
+          >
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="qualified">Qualified</option>
+            <option value="proposal_sent">Proposal</option>
+            <option value="negotiation">Negotiation</option>
+            <option value="won">Won</option>
+            <option value="lost">Lost</option>
+          </select>
+        ),
     },
     {
       key: "actions",

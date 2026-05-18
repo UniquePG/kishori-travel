@@ -56,7 +56,7 @@ export default function HomeSearchBar() {
                 onChange={(e) => handleFilterChange("destination", e.target.value)}
               >
                 <option value="">All Destinations</option>
-                {filterData.destinations.map(dest => (
+                {filterData.destinations.slice(0, 8).map(dest => (
                   <option key={dest} value={dest}>{dest}</option>
                 ))}
               </select>
@@ -69,8 +69,8 @@ export default function HomeSearchBar() {
                 onChange={(e) => handleFilterChange("duration", e.target.value)}
               >
                 <option value="">Any Duration</option>
-                {filterData.durations.map(dur => (
-                  <option key={dur} value={dur}>{dur} Days</option>
+                {filterData.durations.slice(0, 8).map(dur => (
+                  <option key={dur} value={dur}>{`${dur}D / ${dur-1}N`}</option>
                 ))}
               </select>
             </div>
@@ -97,7 +97,7 @@ export default function HomeSearchBar() {
                 onChange={(e) => handleFilterChange("type", e.target.value)}
               >
                 <option value="">All Types</option>
-                {filterData.packageTypes.map(type => (
+                {filterData.packageTypes.slice(0, 8).map(type => (
                   <option key={type} value={type}>{type}</option>
                 ))}
               </select>

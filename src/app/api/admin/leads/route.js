@@ -112,7 +112,6 @@ export async function POST(request) {
 export async function PUT(request) {
   const admin = await checkAdmin();
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  console.log("admin ", admin)
 
   try {
     const body = await request.json();
@@ -125,15 +124,18 @@ export async function PUT(request) {
     });
 
     if (!oldLead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
-     console.log("oldLead: ", oldLead)
-    const newAssigneeId = data.assignee_to ? parseInt(data.assignee_to) : null;
-
+    
+    let newAssigneeId = null;
+    if (data.assignedTo && data.assignedTo !== "0" && data.assignedTo !== 0) {
+      newAssigneeId = parseInt(data.assignedTo);
+    }
+    
     await db.update(schema.leads)
       .set({
         fullName: data.fullName,
         phone: data.phone,
         email: data.email,
-        destinationInterest: data.destinationInterest,
+        destinationInterest: data.destinationInterest?.id,
         travelDate: data.travelDate ? new Date(data.travelDate) : null,
         numberOfPeople: data.numberOfPeople ? parseInt(data.numberOfPeople) : null,
         budget: data.budget ? data.budget.toString() : null,
@@ -156,7 +158,6 @@ export async function PUT(request) {
       },
     });
 
-    console.log("newAssigneeId: ", newAssigneeId)
 
     // Track assignment change (assigned_to is NOT NULL on lead_assignments — skip row when unassigning)
     if (newAssigneeId && newAssigneeId !== oldLead.assignedTo) {

@@ -56,11 +56,7 @@ export default function PackageListingCard({ pkg, onOpen }) {
               <span className="pkg-price-val">₹{pkg.currentPrice}</span>
               {pkg.oldPrice && <span className="pkg-price-old">₹{pkg.oldPrice}</span>}
             </div>
-            {shareFrom != null ? (
-              <span className="pkg-price-per text-[11px] text-slate-500">Room sharing from ₹{shareFrom}</span>
-            ) : (
-              <span className="pkg-price-per">per person</span>
-            )}
+            <span className="pkg-price-per">per person</span>
           </div>
           <button type="button" className="btn-itinerary" onClick={() => onOpen(pkg)}>
             View Itinerary

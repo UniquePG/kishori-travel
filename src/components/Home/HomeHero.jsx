@@ -16,7 +16,6 @@ export default function HomeHero() {
       </div>
       
       <div className="hero-content reveal in">
-        <div className="hero-tag">Premium Travel Experience</div>
         <h1 className="hero-title">
           Explore the Sacred <em>Spirit</em> of India with Kishori Travels
         </h1>

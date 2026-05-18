@@ -18,6 +18,7 @@ export async function syncBookingFromWonLead(leadId) {
       },
     },
   });
+  console.log("leadwhenbooking ", lead)
 
   if (!lead || lead.status !== "won") {
     return { bookingId: null, skipped: "not_won_or_missing_lead" };
@@ -40,6 +41,8 @@ export async function syncBookingFromWonLead(leadId) {
   const existing = await db.query.bookings.findFirst({
     where: and(eq(schema.bookings.leadId, leadId), isNull(schema.bookings.deletedAt)),
   });
+
+  console.log("existing ", existing)
 
   const base = {
     packageId,

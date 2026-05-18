@@ -33,14 +33,13 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const [lead] = await db.update(schema.leads)
+    await db.update(schema.leads)
       .set({ 
         status,
         message: note ? `${oldLead.message || ""}\n\n[Note ${new Date().toLocaleDateString()}]: ${note}` : oldLead.message,
         updatedAt: new Date()
       })
-      .where(eq(schema.leads.id, id))
-      .returning();
+      .where(eq(schema.leads.id, id));
 
     // Track status change
     if (status !== oldLead.status) {
@@ -52,6 +51,17 @@ export async function PUT(request, { params }) {
         note: note || "Status updated by member"
       });
     }
+
+    const lead = await db.query.leads.findFirst({
+      where: eq(schema.leads.id, Number(id)),
+      with: {
+        destinationInterest: {
+          id: true,
+          title: true,
+          slug: true,
+        },
+      },
+    });
 
     return NextResponse.json(lead);
   } catch (error) {
